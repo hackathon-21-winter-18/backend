@@ -1,0 +1,48 @@
+version: "3"
+services:
+  db:
+    # build: ./mysql
+    volumes:
+      - ./mysql/init:/docker-entrypoint-initdb.d 
+    image: local_mysql
+    environment:
+        MYSQL_ROOT_PASSWORD: password
+        MYSQL_DATABASE: 21hack18
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    links:
+      - db
+    ports:
+      - 4040:80
+    volumes:
+      - ./phpmyadmin/sessions:/sessions
+  
+  app: # service名
+    build: . # ビルドに使用するDockerfileがあるディレクトリ指定
+    tty: true # コンテナの起動永続化
+    volumes:
+      - .:/go/src/work # マウントディレクトリ指定
+    depends_on: 
+      - db
+    ports: # ホストOSのポートとコンテナのポートをつなげる 
+      - "8080:8080"
+
+  nginx:
+    # build: ./nginx
+    image: nginx_test
+    ports:
+      - "80:80"
+    # volumes:
+      # - ./nginx/conf.d/:/etc/nginx/conf.d 
+      # - ./nginx/index.html:/usr/share/nginx/html/index.html

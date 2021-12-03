@@ -1,0 +1,116 @@
+openapi: 3.0.0
+info:
+  title: 21hack18 API
+  description: winter hackathon
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+
+tags:
+  - name: home
+  - name: palace
+paths:
+  /signup:
+    post:
+      tags:
+        - home
+  /login:
+    post:
+      tags:
+        - home
+  /logout:
+    delete:
+      tags:
+        - home
+  /palace/me/{userID}:
+    get:
+      tags:
+        - palace
+      summary: MyPalaceの一覧を取得
+  /palace/me/raw/{userID}:
+    get:
+      tags:
+        - palace
+      summary: 自分が保持しているrawPalaceを取得
+  /palace:
+    post:
+      tags:
+        - palace
+      summary: 特定のpalaceを作成
+  /palace/{palaceID}:
+    get:
+      tags:
+        - palace
+      summary: 特定のpalaceを取得
+    put:
+      tags:
+        - palace
+      summary: 特定のpalaceを修正
+    delete:
+      tags:
+        - palace
+      summary: 特定のpalaceを削除
+
+components:
+  schemas:
+    User:
+      title: User
+      type: object
+      description: 自分の情報
+      properties: 
+        name: 
+          type: string
+          description: ユーザー名
+        password:
+          type: string
+        myPalaceId:
+          type: string
+          format: uuid
+          description: 自分が保持しているpalaceのID
+      required:
+      - name
+      - password
+    Palace:
+      title: Palace
+      type: object
+      description: 画像、地点、単語を含む記憶の宮殿
+      properties:
+        id: 
+          type: string
+          format: uuid
+        name: 
+          type: string
+        image:
+          type: string
+        pins: 
+          type: array
+          items:
+            $ref: "#/components/schemas/Pin"
+          description: ピンの配列
+        createdBy:
+          type: string
+          description: rawPalaceの作成者のユーザー名
+      required:
+        - id
+        - name
+        - createdBy
+    Pin: 
+      title: Pin
+      type: object
+      description: 暗記対象の入力欄の座標と単語とメモ
+      properties:
+        x:
+          type: integer
+        y:
+          type: integer
+        word:
+          type: string
+          description: 暗記対象
+        memo:
+          type: string
+          description: 覚え方などのメモ
+      required:
+        - x
+        - y
+      
+
