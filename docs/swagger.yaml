@@ -8,7 +8,8 @@ servers:
 
 tags:
   - name: oauth
-  - name: palace
+  - name: words
+  - name: palaces
 paths:
   /oauth/signup:
     post:
@@ -27,61 +28,122 @@ paths:
       tags:
         - oauth
       summary: 自分のユーザー名を取得
-  /palace/me/{userID}:
+  /words/{userID}:
     get:
       tags:
-        - palace
+        - words
       summary: myWordsの一覧を取得
-  /palace/me/raw/{userID}:
+  /palaces/me/{userID}:
     get:
       tags:
-        - palace
-      summary: 自分が保持しているrawPalaceを取得
-  /palace:
+        - palaces
+      summary: 自分が保持しているpalaceを取得
+  /palaces:
     post:
       tags:
-        - palace
+        - palaces
       summary: 特定のpalaceを作成
-      requestBody:
-        - $ref: ''
-  /palace/{palaceID}:
+      # requestBody:
+      #   - $ref: ''
+  /palaces/{palaceID}:
     get:
       tags:
-        - palace
+        - palaces
       summary: 特定のpalaceを取得
     put:
       tags:
-        - palace
+        - palaces
       summary: 特定のpalaceを修正
     delete:
       tags:
-        - palace
+        - palaces
       summary: 特定のpalaceを削除
 
 components:
   schemas:
-    User:
-      title: User
+    LoginRequest:
       type: object
-      description: 自分の情報
       properties: 
         name: 
           type: string
           description: ユーザー名
-        hashedPass:
+        password:
           type: string
-          description: ハッシュ化されたパスワード
-        myPalaceId:
-          type: string
-          format: uuid
-          description: 自分が保持しているpalaceのID
       required:
       - name
       - password
+    UserMe:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      description: ログインしたらフロントでuserIDはポスト用に保持、名前は表示するから必要
+    Words:
+      type: object
+      description: ホーム画面で必要
+      properties:
+        Words:
+          type: array
+          items:
+            $ref: "#/components/schemas/Word"
+    Word:
+      type: object
+      description: 自分の単語が埋め込まれたpalaceの概要。ホーム画面で必要。detailと分けなくてもいいけどこっちのがわかりやすそう。
+      properties:
+        id:
+          type: string
+          format: uuid
+        name: 
+          type: string
+        image:
+          type: array
+        # memo:
+        #   type: string
+    WordDetail:
+      type: object
+      description: 自分の単語が埋め込まれたpalaceの情報。
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままPUTするときにid必要
+        name:
+          type: string
+        image: 
+          type: array
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
+        # createdBy:
+        #   type: string
+        #   format: uuid　フロントが保持できていてpostできれば必要ない
+    EmbededPin:
+      type: object
+      description: 単語とピンのペア
+      properties: 
+        id:
+          type: string
+          format: uuid
+        x:   
+          type: integer
+        y:
+          type: integer
+        target:
+          type: string
+        memo: 
+          type: string
+    Palaces:
+      type: array
+      items:
+        $ref: "#/components/schemas/Palace"
     Palace:
       title: Palace
       type: object
-      description: 画像、地点、単語を含む記憶の宮殿
+      description: 単語を含まない記憶の宮殿
       properties:
         id: 
           type: string
@@ -95,30 +157,28 @@ components:
           items:
             $ref: "#/components/schemas/Pin"
           description: ピンの配列
+        # memo:
+        #   type: string
         createdBy:
           type: string
-          description: rawPalaceの作成者のユーザー名
+          format: uuid
+          description: レスポンスにはいらなくね？
       required:
         - id
         - name
         - createdBy
-    Pin: 
-      title: Pin
+    Pin:
       type: object
-      description: 暗記対象の入力欄の座標と単語とメモ
       properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままputする時のために必要多分
         x:
           type: integer
         y:
           type: integer
-        word:
-          type: string
-          description: 暗記対象
-        memo:
-          type: string
-          description: 覚え方などのメモ
-      required:
-        - x
-        - y
-      
+      description: 単語なしのピン
+    TemplateRequest:
+    WordRequest:
 
