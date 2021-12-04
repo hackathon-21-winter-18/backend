@@ -4,7 +4,7 @@ services:
     build: ./mysql
     volumes:
       - ./mysql/init:/docker-entrypoint-initdb.d 
-      - ./mysql/data:/var/lib/mysql
+      # - ./mysql/data:/var/lib/mysql
     image: hack_mysql
     command: bash -c 'usermod -o -u $LINUX_MYSQL_UID mysql; groupmod -o -g $LINUX_MYSQL_GID mysql; chown -R mysql:root /var/run/mysqld/ /var/log/mysql/ /var/lib/mysql/; /entrypoint.sh mysqld --user=mysql --console'
     environment:
@@ -39,11 +39,11 @@ services:
     ports: # ホストOSのポートとコンテナのポートをつなげる 
       - "3000:3000"
 
-  nginx:
-    # build: ./nginx
-    image: nginx_test
-    ports:
-      - "80:80"
+  # nginx:
+  #   # build: ./nginx
+  #   image: nginx_test
+  #   ports:
+  #     - "80:80"
     # volumes:
       # - ./nginx/conf.d/:/etc/nginx/conf.d 
       # - ./nginx/index.html:/usr/share/nginx/html/index.html

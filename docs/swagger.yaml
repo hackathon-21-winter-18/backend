@@ -10,7 +10,7 @@ tags:
   - name: oauth
   - name: palace
 paths:
-  /oatuth/signup:
+  /oauth/signup:
     post:
       tags:
         - oauth
@@ -31,7 +31,7 @@ paths:
     get:
       tags:
         - palace
-      summary: MyPalaceの一覧を取得
+      summary: myWordsの一覧を取得
   /palace/me/raw/{userID}:
     get:
       tags:
@@ -42,6 +42,8 @@ paths:
       tags:
         - palace
       summary: 特定のpalaceを作成
+      requestBody:
+        - $ref: ''
   /palace/{palaceID}:
     get:
       tags:
