@@ -8,8 +8,8 @@ servers:
 
 tags:
   - name: oauth
-  - name: words
   - name: palaces
+  - name: templates
 paths:
   /oauth/signup:
     post:
@@ -28,36 +28,52 @@ paths:
       tags:
         - oauth
       summary: 自分のユーザー名を取得
-  /words/{userID}:
-    get:
-      tags:
-        - words
-      summary: myWordsの一覧を取得
-  /palaces/me/{userID}:
+  /palaces/{userID}:
     get:
       tags:
         - palaces
-      summary: 自分が保持しているpalaceを取得
+      summary: 自分のpalaceの一覧を取得
   /palaces:
-    post:
-      tags:
-        - palaces
-      summary: 特定のpalaceを作成
-      # requestBody:
-      #   - $ref: ''
+      post:
+        tags:
+          - palaces
+        summary: palaceを作成
   /palaces/{palaceID}:
-    get:
+    get: 
       tags:
         - palaces
-      summary: 特定のpalaceを取得
+      summary: 特定のpalaceの情報を取得
     put:
-      tags:
+      tags: 
         - palaces
       summary: 特定のpalaceを修正
     delete:
       tags:
         - palaces
       summary: 特定のpalaceを削除
+  /templates/{userID}:
+    get:
+      tags:
+        - templates
+      summary: 自分が保持しているtemplateを取得
+  /templates:
+    post:
+      tags:
+        - templates
+      summary: 特定のtemplateを作成
+  /templates/{templateID}:
+    get:
+      tags:
+        - templates
+      summary: 特定のtemplateを取得
+    put:
+      tags:
+        - templates
+      summary: 特定のtemplateを修正
+    delete:
+      tags:
+        - templates
+      summary: 特定のtemplateを削除
 
 components:
   schemas:
@@ -81,15 +97,15 @@ components:
         name:
           type: string
       description: ログインしたらフロントでuserIDはポスト用に保持、名前は表示するから必要
-    Words:
+    Palaces:
       type: object
       description: ホーム画面で必要
       properties:
         Words:
           type: array
           items:
-            $ref: "#/components/schemas/Word"
-    Word:
+            $ref: "#/components/schemas/Palace"
+    Palace:
       type: object
       description: 自分の単語が埋め込まれたpalaceの概要。ホーム画面で必要。detailと分けなくてもいいけどこっちのがわかりやすそう。
       properties:
@@ -102,7 +118,7 @@ components:
           type: array
         # memo:
         #   type: string
-    WordDetail:
+    PalaceDetail:
       type: object
       description: 自分の単語が埋め込まれたpalaceの情報。
       properties:
@@ -136,12 +152,14 @@ components:
           type: string
         memo: 
           type: string
-    Palaces:
+        palaceID: 
+          type: string
+          format: uuid
+    Templates:
       type: array
       items:
-        $ref: "#/components/schemas/Palace"
-    Palace:
-      title: Palace
+        $ref: "#/components/schemas/Template"
+    Template:
       type: object
       description: 単語を含まない記憶の宮殿
       properties:
@@ -162,7 +180,6 @@ components:
         createdBy:
           type: string
           format: uuid
-          description: レスポンスにはいらなくね？
       required:
         - id
         - name
@@ -178,7 +195,43 @@ components:
           type: integer
         y:
           type: integer
+        templateID:
+          type: string
+          format: uuid
       description: 単語なしのピン
     TemplateRequest:
-    WordRequest:
+      type: object
+      properties:
+        name: 
+          type: string
+        image:
+          type: string
+        pins: 
+          type: array
+          items:
+            $ref: "#/components/schemas/Pin"
+          description: ピンの配列
+        # memo:
+        #   type: string
+        createdBy:
+          type: string
+          format: uuid
+      required:
+        - id
+        - name
+        - createdBy
+    PalaceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        image: 
+          type: array
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
+        # createdBy:
+        #   type: string
+        #   format: uuid
 
