@@ -3,7 +3,8 @@ CREATE DATABASE 21hack18;
 USE 21hack18;
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` char(36) PRIMARY KEY NOT NULL,
-  `name` varchar(32) NOT NULL UNIQUE,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `username` varchar(32) NOT NULL UNIQUE,
+  `hashedPass` VARCHAR(200) NOT NULL,
+  -- `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
+  PRIMARY KEY (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -10,8 +10,8 @@ import (
 )
 
 type User struct {
-	Username   string `json:"username,omitempty" db:"Username"`
-	HashedPass string `json:"-" db:"HashedPass"`
+	Username   string `json:"username,omitempty" db:"username"`
+	HashedPass string `json:"-" db:"hashedPass"`
 }
 
 func PostSignUp(c echo.Context, username string, hashedPass []byte) error {
@@ -26,7 +26,7 @@ func PostSignUp(c echo.Context, username string, hashedPass []byte) error {
 		return c.String(http.StatusConflict, "ユーザーが既に存在しています")
 	}
 
-	_, err = db.Exec("INSERT INTO users (Username, HashedPass) VALUES (?, ?)", username, hashedPass)
+	_, err = db.Exec("INSERT INTO users (username, hashedPass) VALUES (?, ?)", username, hashedPass)
 	if err != nil {
 		return err
 	}

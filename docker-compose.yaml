@@ -1,10 +1,10 @@
 version: "3"
 services:
   db:
-    # build: ./mysql
+    build: ./mysql
     volumes:
       - ./mysql/init:/docker-entrypoint-initdb.d 
-    image: local_mysql
+    image: hack_mysql
     environment:
         MYSQL_ROOT_PASSWORD: password
         MYSQL_DATABASE: 21hack18
