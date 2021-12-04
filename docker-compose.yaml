@@ -4,7 +4,9 @@ services:
     build: ./mysql
     volumes:
       - ./mysql/init:/docker-entrypoint-initdb.d 
+      - ./mysql/data:/var/lib/mysql
     image: hack_mysql
+    command: bash -c 'usermod -o -u $LINUX_MYSQL_UID mysql; groupmod -o -g $LINUX_MYSQL_GID mysql; chown -R mysql:root /var/run/mysqld/ /var/log/mysql/ /var/lib/mysql/; /entrypoint.sh mysqld --user=mysql --console'
     environment:
         MYSQL_ROOT_PASSWORD: password
         MYSQL_DATABASE: 21hack18
@@ -12,7 +14,6 @@ services:
       - "3306"
     ports:
       - "3306:3306"
-
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin

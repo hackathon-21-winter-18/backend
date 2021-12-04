@@ -27,7 +27,7 @@ func SetRouting(sess sess.Session) {
 
 		apiOauth := api.Group("/oauth")
 		{
-			apiOauth.POST("/singup", postSignUp)
+			apiOauth.POST("/signup", postSignUp)
 			apiOauth.POST("/login", postLogin)
 		}
 	}
