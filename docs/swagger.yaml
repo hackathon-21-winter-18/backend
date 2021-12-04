@@ -7,21 +7,26 @@ servers:
   - url: http://localhost:3000/api
 
 tags:
-  - name: home
+  - name: oauth
   - name: palace
 paths:
-  /signup:
+  /oatuth/signup:
     post:
       tags:
-        - home
-  /login:
+        - oauth
+  /oauth/login:
     post:
       tags:
-        - home
-  /logout:
-    delete:
+        - oauth
+  /oauth/logout:
+    post:
       tags:
-        - home
+        - oauth
+  /oauth/whoamI:
+    get:
+      tags:
+        - oauth
+      summary: 自分のユーザー名を取得
   /palace/me/{userID}:
     get:
       tags:
@@ -61,8 +66,9 @@ components:
         name: 
           type: string
           description: ユーザー名
-        password:
+        hashedPass:
           type: string
+          description: ハッシュ化されたパスワード
         myPalaceId:
           type: string
           format: uuid
