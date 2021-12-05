@@ -15,11 +15,11 @@ type PalaceRequest struct {
 }
 
 type EmbededPin struct {
-	ID   uuid.UUID `json:"id"`
-	X    float32   `json:"x"`
-	Y    float32   `json:"y"`
-	Word string    `json:"word"`
-	Memo string    `json:"memo"`
+	Number int     `json:"number"`
+	X      float32 `json:"x"`
+	Y      float32 `json:"y"`
+	Word   string  `json:"word"`
+	Memo   string  `json:"memo"`
 }
 
 func postPalace(c echo.Context) error {
@@ -40,7 +40,7 @@ func postPalace(c echo.Context) error {
 	}
 
 	for _, embededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Memo)
+		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Memo)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}

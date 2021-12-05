@@ -19,11 +19,11 @@ CREATE TABLE IF NOT EXISTS `palaces` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `embededpins` (
-  `id` char(36) NOT NULL UNIQUE,
+  `number` int NOT NULL UNIQUE,
   `x` decimal(10, 2) NOT NULL, 
   `y` decimal(10, 2) NOT NULL,
-  `word` char(15) NOT NULL,
-  `memo` char(30) NOT NULL,
+  `word` varchar(15) NOT NULL,
+  `memo` varchar(30) NOT NULL,
   `palaceID` char(36) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
