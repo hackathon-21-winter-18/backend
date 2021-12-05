@@ -234,7 +234,7 @@ components:
       type: object
       description: 単語とピンのペア
       properties: 
-        index:
+        number:
           type: integer
           description: 整数を表示しないとしても設定
         x:   
@@ -278,7 +278,7 @@ components:
     Pin:
       type: object
       properties:
-        index:
+        number:
           type: integer
           description: 整数を表示しないとしても設定
         x:
