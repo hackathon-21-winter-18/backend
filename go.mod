@@ -1,4 +1,4 @@
-module github.com/hackathon-winter-18/backend
+module github.com/hackathon-21-winter-18/backend
 
 go 1.16
 

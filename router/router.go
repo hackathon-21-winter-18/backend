@@ -3,7 +3,7 @@ package router
 import (
 	"net/http"
 
-	sess "github.com/hackathon-winter-18/backend/session" // sessだけ使うって意味？
+	sess "github.com/hackathon-21-winter-18/backend/session" // sessだけ使うって意味？
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4/middleware"
@@ -31,6 +31,13 @@ func SetRouting(sess sess.Session) {
 			apiOauth.POST("/login", postLogin)
 			apiOauth.GET("/whoamI", getWhoamI)
 		}
+
+		apiPalaces := api.Group("/palaces")
+		{
+			apiPalaces.POST("/:userID", postPalace)
+		}
+
+
 	}
 
 	err := e.Start(":3000")

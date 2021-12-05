@@ -5,20 +5,20 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/hackathon-winter-18/backend/model"
+	"github.com/hackathon-21-winter-18/backend/model"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginRequestBody struct { //TODO form何に使うんだっけ
-	Name     string `json:"name,omitempty" form:"name"`
-	Password string `json:"password,omitempty" form:"password"`
+type LoginRequestBody struct {
+	Name     string `json:"name,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 type LoginResponse struct {
-	ID   uuid.UUID `json:"id,omitempty" form:"id"`
-	Name string    `json:"name,omitempty" form:"name"`
+	ID   uuid.UUID `json:"id,omitempty"`
+	Name string    `json:"name,omitempty"`
 }
 
 type Me struct {
@@ -55,6 +55,10 @@ func postSignUp(c echo.Context) error {
 func postLogin(c echo.Context) error {
 	var req LoginRequestBody
 	c.Bind(&req)
+
+	if req.Password == "" || req.Name == "" {
+		return c.String(http.StatusBadRequest, "項目が空です")
+	}
 
 	userID, err := model.PostLogin(c, req.Name, req.Password)
 	if err != nil {
