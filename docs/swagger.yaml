@@ -244,7 +244,7 @@ components:
           type: integer
         y:
           type: integer
-        target:
+        word:
           type: string
         memo: 
           type: string
