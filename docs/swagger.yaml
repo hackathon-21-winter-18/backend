@@ -236,6 +236,7 @@ components:
       properties: 
         index:
           type: integer
+          description: 整数を表示しないとしても設定
         x:   
           type: number
         y:
@@ -279,6 +280,7 @@ components:
       properties:
         index:
           type: integer
+          description: 整数を表示しないとしても設定
         x:
           type: number
         y:
