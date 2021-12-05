@@ -80,7 +80,6 @@ paths:
       tags:
         - palaces
       summary: palaceを作成
-      description: embededPinのidは空でpost
       requestBody:
         content:
           application/json:
@@ -136,7 +135,6 @@ paths:
       tags:
         - templates
       summary: のtemplateを作成
-      description: pinのidは空でポスト
       requestBody:
         content:
           application/json:
