@@ -4,21 +4,32 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/hackathon-winter-18/backend/model"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequestBody struct { //TODO form何に使うんだっけ
-	Username string `json:"username,omitempty" form:"username"`
+	Name     string `json:"name,omitempty" form:"name"`
 	Password string `json:"password,omitempty" form:"password"`
+}
+
+type LoginResponse struct {
+	ID   uuid.UUID `json:"id,omitempty" form:"id"`
+	Name string    `json:"name,omitempty" form:"name"`
+}
+
+type Me struct {
+	ID string `json:"id"`
 }
 
 func postSignUp(c echo.Context) error {
 	var req LoginRequestBody
 	c.Bind(&req)
 
-	if req.Password == "" || req.Username == "" {
+	if req.Password == "" || req.Name == "" {
 		return c.String(http.StatusBadRequest, "項目が空です")
 	}
 
@@ -27,24 +38,46 @@ func postSignUp(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("bcrypt generate error: %v", err))
 	}
 
-	err = model.PostSignUp(c, req.Username, hashedPass)
+	userID, err := model.PostSignUp(c, req.Name, hashedPass)
 	if err != nil {
 		//TODO
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
 	}
 
-	return echo.NewHTTPError(http.StatusOK)
+	res := LoginResponse{
+		ID:   *userID,
+		Name: req.Name,
+	}
+
+	return echo.NewHTTPError(http.StatusOK, res)
 }
 
 func postLogin(c echo.Context) error {
 	var req LoginRequestBody
 	c.Bind(&req)
 
-	err := model.PostLogin(c, req.Username, req.Password)
+	userID, err := model.PostLogin(c, req.Name, req.Password)
 	if err != nil {
 		//TODO エラーがdbなのかhashかなのか
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("error: %v", err))
 	}
 
-	return echo.NewHTTPError(http.StatusOK)
+	res := LoginResponse{
+		ID:   *userID,
+		Name: req.Name,
+	}
+
+	return echo.NewHTTPError(http.StatusOK, res)
+}
+
+func getWhoamI(c echo.Context) error {
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		return errSessionNotFound(err)
+	}
+
+	//TODO uuidはマップできなかったから文字列でやってるけどこれでいいのかな
+	return c.JSON(http.StatusOK, Me{
+		ID: sess.Values["userID"].(string),
+	})
 }
