@@ -15,65 +15,167 @@ paths:
     post:
       tags:
         - oauth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
   /oauth/login:
     post:
       tags:
         - oauth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
   /oauth/logout:
     post:
       tags:
         - oauth
+      responses:
+        200:
+          description: OK
   /oauth/whoamI:
     get:
       tags:
         - oauth
-      summary: 自分のユーザー名を取得
+      summary: 自分のユーザーIDを取得
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
   /palaces/{userID}:
     get:
       tags:
         - palaces
       summary: 自分のpalaceの一覧を取得
-  /palaces:
-      post:
-        tags:
-          - palaces
-        summary: palaceを作成
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palaces"
+    post:
+      tags:
+        - palaces
+      summary: palaceを作成
+      description: embededPinのidは空でpost
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PalaceRequest"
+      responses:
+        200:
+          description: OK
   /palaces/{palaceID}:
     get: 
       tags:
         - palaces
-      summary: 特定のpalaceの情報を取得
+      summary: 特定のpalaceを取得(いらなそう)
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palace"
     put:
       tags: 
         - palaces
       summary: 特定のpalaceを修正
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PalaceRequest"
+      responses:
+        200:
+          description: OK
     delete:
       tags:
         - palaces
       summary: 特定のpalaceを削除
+      responses:
+        200:
+          description: OK
   /templates/{userID}:
     get:
       tags:
         - templates
       summary: 自分が保持しているtemplateを取得
-  /templates:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Templates"
     post:
       tags:
         - templates
-      summary: 特定のtemplateを作成
+      summary: のtemplateを作成
+      description: pinのidは空でポスト
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateRequest"
+      responses: 
+        200:
+          description: OK
   /templates/{templateID}:
     get:
       tags:
         - templates
-      summary: 特定のtemplateを取得
+      summary: 特定のtemplateを取得(いらなそう)
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
     put:
       tags:
         - templates
       summary: 特定のtemplateを修正
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateRequest"
+      responses:
+        200:
+          description: OK
     delete:
       tags:
         - templates
       summary: 特定のtemplateを削除
+      responses:
+        200: 
+          description: OK
 
 components:
   schemas:
@@ -88,7 +190,7 @@ components:
       required:
       - name
       - password
-    UserMe:
+    LoginResponse:
       type: object
       properties:
         id:
@@ -97,28 +199,21 @@ components:
         name:
           type: string
       description: ログインしたらフロントでuserIDはポスト用に保持、名前は表示するから必要
-    Palaces:
+    Me:
       type: object
-      description: ホーム画面で必要
-      properties:
-        Words:
-          type: array
-          items:
-            $ref: "#/components/schemas/Palace"
-    Palace:
-      type: object
-      description: 自分の単語が埋め込まれたpalaceの概要。ホーム画面で必要。detailと分けなくてもいいけどこっちのがわかりやすそう。
       properties:
         id:
           type: string
           format: uuid
-        name: 
-          type: string
-        image:
+    Palaces:
+      type: object
+      description: ホーム画面で必要
+      properties:
+        Palaces:
           type: array
-        # memo:
-        #   type: string
-    PalaceDetail:
+          items:
+            $ref: "#/components/schemas/Palace"
+    Palace:
       type: object
       description: 自分の単語が埋め込まれたpalaceの情報。
       properties:
@@ -129,7 +224,8 @@ components:
         name:
           type: string
         image: 
-          type: array
+          type: string
+          format: base64
         embededPins:
           type: array
           items:
@@ -152,9 +248,6 @@ components:
           type: string
         memo: 
           type: string
-        palaceID: 
-          type: string
-          format: uuid
     Templates:
       type: array
       items:
@@ -170,6 +263,7 @@ components:
           type: string
         image:
           type: string
+          format: base64
         pins: 
           type: array
           items:
@@ -195,9 +289,6 @@ components:
           type: integer
         y:
           type: integer
-        templateID:
-          type: string
-          format: uuid
       description: 単語なしのピン
     TemplateRequest:
       type: object
@@ -206,6 +297,7 @@ components:
           type: string
         image:
           type: string
+          format: base644
         pins: 
           type: array
           items:
@@ -226,7 +318,8 @@ components:
         name:
           type: string
         image: 
-          type: array
+          type: string
+          format: base64
         embededPins:
           type: array
           items:
