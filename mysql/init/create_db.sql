@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `palaces` (
   `createdBy` char(36) NOT NULL,
   `image` varchar(1000) NOT NULL,
   PRIMARY KEY (`id`)
-)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `embededpins` (
   `id` char(36) NOT NULL UNIQUE,
@@ -24,5 +24,6 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
   `y` decimal(10, 2) NOT NULL,
   `word` char(15) NOT NULL,
   `memo` char(30) NOT NULL,
+  `palaceID` char(36) NOT NULL,
   PRIMARY KEY (`id`)
-)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

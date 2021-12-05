@@ -34,13 +34,13 @@ func postPalace(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = model.CreatePalace(ctx, userID, req.Name, req.Image)
+	palaceID, err := model.CreatePalace(ctx, userID, req.Name, req.Image)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	for _, embededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, userID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Memo)
+		err = model.CreateEmbededPin(ctx, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Memo)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
