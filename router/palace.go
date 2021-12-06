@@ -37,7 +37,7 @@ func getPalaces(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 		for _, embededPin := range embededPins {
-			palace.EmbededPins := append(palace.EmbededPins, embededPin)
+			palace.EmbededPins = append(palace.EmbededPins, embededPin)
 		}
 	}
 

@@ -6,6 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
+func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
+	var embededPins []EmbededPin
+	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, memo FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return embededPins, nil
+}
+
 func CreateEmbededPin(ctx context.Context, number int, palaceID uuid.UUID, x, y float32, word string, memo string) error {
 	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, memo, palaceID) VALUES (?, ?, ?, ?, ?, ?) ", number, x, y, word, memo, palaceID)
 	if err != nil {

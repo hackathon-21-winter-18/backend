@@ -22,8 +22,8 @@ type EmbededPin struct {
 	Memo   string  `json:"memo" db:"memo"`
 }
 
-func GetPalaces(ctx context.Context, userID uuid.UUID) ([]Palace, error) {
-	var palaces []Palace
+func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
+	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE createdBy=? ", userID)
 	if err != nil {
 		return nil, err
@@ -32,15 +32,6 @@ func GetPalaces(ctx context.Context, userID uuid.UUID) ([]Palace, error) {
 	return palaces, nil
 }
 
-func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
-	var embededPins []EmbededPin
-	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, memo FROM embededpins WHERE palaceID=? ", PalaceID)
-	if err != nil {
-		return nil, err
-	}
-
-	return embededPins, nil
-}
 func CreatePalace(ctx context.Context, userID uuid.UUID, name, image string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
 	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, image) VALUES (?, ?, ?, ?) ", palaceID, name, userID, image)
