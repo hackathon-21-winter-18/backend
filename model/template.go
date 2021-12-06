@@ -20,8 +20,7 @@ type TemplatePins struct {
 
 func CreateTemplate(ctx context.Context, name string, image string, pins []Pin, createdby uuid.UUID) (*uuid.UUID, error) {
 	templateID := uuid.New()
-	query := "INSERT INTO template (id, name, image, createdBy) VALUES (?, ?, ?, ?)"
-	_, err := db.ExecContext(ctx, query, templateID, name, image, createdby)
+	_, err := db.ExecContext(ctx, "INSERT INTO template (id, name, image, createdBy) VALUES (?, ?, ?, ?)", templateID, name, image, createdby)
 	if err != nil {
 		return nil, err
 	}
