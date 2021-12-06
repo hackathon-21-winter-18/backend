@@ -11,6 +11,13 @@ func CreateEmbededPin(ctx context.Context, number int, palaceID uuid.UUID, x, y 
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
+func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM embededpins WHERE palaceID=? ", palaceID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
