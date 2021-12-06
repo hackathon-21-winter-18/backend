@@ -265,9 +265,6 @@ components:
           description: ピンの配列
         # memo:
         #   type: string
-        createdBy:
-          type: string
-          format: uuid
       required:
         - id
         - name
