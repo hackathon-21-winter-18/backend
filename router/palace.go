@@ -56,7 +56,12 @@ func postPalace(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	palaceID, err := model.CreatePalace(ctx, userID, req.Name, req.Image)
+	path, err := model.CreatePathName(ctx, req.Image)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	palaceID, err := model.CreatePalace(ctx, userID, req.Name, path)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
@@ -66,6 +71,12 @@ func postPalace(c echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
+	}
+
+	//TODO model関数この順番でいいのか
+	err = model.DecodeToImageAndSave(ctx, req.Image, path)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	//TODO 多分resけす

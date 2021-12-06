@@ -32,9 +32,9 @@ func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	return palaces, nil
 }
 
-func CreatePalace(ctx context.Context, userID uuid.UUID, name, image string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, userID uuid.UUID, name, path string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, image) VALUES (?, ?, ?, ?) ", palaceID, name, userID, image)
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, image) VALUES (?, ?, ?, ?) ", palaceID, name, userID, path)
 	if err != nil {
 		return nil, err
 	}
