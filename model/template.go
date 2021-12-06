@@ -19,9 +19,9 @@ type TemplatePins struct {
 }
 
 type Pin struct {
-	Id uuid.UUID `db:"id"`
-	X  float32   `db:"x"`
-	Y  float32   `db:"y"`
+	Id uuid.UUID `db:"id" json:"id"`
+	X  float32   `db:"x" json:"x"`
+	Y  float32   `db:"y" json:"y"`
 }
 
 func CreateTemplate(ctx context.Context, name string, image string, pins []Pin, createdby uuid.UUID) (*uuid.UUID, error) {
@@ -46,3 +46,25 @@ func CreateTemplate(ctx context.Context, name string, image string, pins []Pin, 
 	}
 	return &templateID, nil
 }
+
+// func GetTemplateFromId(ctx context.Context, id uuid.UUID) (*router.Template, error) {
+// 	var template Template
+// 	query := "SELECT * FROM template WHERE id=?"
+// 	err := db.Get(&template, query, id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var pins []Pin
+// 	query = "SELECT * FROM pin WHERE template IN (SELECT id FROM template_pins WHERE id=?)"
+// 	err = db.Get(&pins, query, id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	res := router.Template{
+// 		Id:        id,
+// 		Name:      template.Name,
+// 		Image:     string(template.Image),
+// 		CreatedBy: template.CreatedBy,
+// 	}
+// 	res.Pins = pins
+// }

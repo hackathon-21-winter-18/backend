@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	sess "github.com/hackathon-winter-18/backend/session" // sessだけ使うって意味？
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
@@ -29,6 +29,11 @@ func SetRouting(sess sess.Session) {
 		{
 			apiOauth.POST("/signup", postSignUp)
 			apiOauth.POST("/login", postLogin)
+		}
+
+		apiTemplates := api.Group("/templates")
+		{
+			apiTemplates.POST("/:userID", PostTemplates)
 		}
 	}
 
