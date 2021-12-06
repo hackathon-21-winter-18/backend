@@ -119,7 +119,7 @@ paths:
       responses:
         200:
           description: OK
-  /templates/{userID}:
+  /templates/me/{userID}:
     get:
       tags:
         - templates
@@ -203,13 +203,10 @@ components:
         id:
           type: string
     Palaces:
-      type: object
+      type: array
+      items:
+        $ref: "#/components/schemas/Palace"
       description: ホーム画面で必要
-      properties:
-        Palaces:
-          type: array
-          items:
-            $ref: "#/components/schemas/Palace"
     Palace:
       type: object
       description: 自分の単語が埋め込まれたpalaceの情報。
@@ -280,7 +277,7 @@ components:
       properties:
         number:
           type: integer
-          description: 整数を表示しないとしても設定
+          description: orderするのに必要
         x:
           type: number
         y:
