@@ -1,7 +1,1 @@
 package model
-
-import (
-
-)
-
-func
