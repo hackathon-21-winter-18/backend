@@ -64,7 +64,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Me"
-  /palaces/{userID}:
+  /palaces/me/{userID}:
     get:
       tags:
         - palaces
