@@ -88,7 +88,7 @@ paths:
       responses:
         200:
           description: OK
-  # /palaces/{palaceID}:
+  /palaces/{palaceID}:
   #   get: 
   #     tags:
   #       - palaces
@@ -143,7 +143,7 @@ paths:
       responses: 
         200:
           description: OK
-  # /templates/{templateID}:
+  /templates/{templateID}:
   #   get:
   #     tags:
   #       - templates
@@ -202,6 +202,7 @@ components:
       properties:
         id:
           type: string
+          format: uuid
     Palaces:
       type: array
       items:
