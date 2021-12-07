@@ -8,80 +8,252 @@ servers:
 
 tags:
   - name: oauth
-  - name: palace
+  - name: palaces
+  - name: templates
 paths:
   /oauth/signup:
     post:
       tags:
         - oauth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
   /oauth/login:
     post:
       tags:
         - oauth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
   /oauth/logout:
     post:
       tags:
         - oauth
+      responses:
+        200:
+          description: OK
   /oauth/whoamI:
     get:
       tags:
         - oauth
-      summary: 自分のユーザー名を取得
-  /palace/me/{userID}:
+      summary: 自分のユーザーIDを取得
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+  /palaces/{userID}:
     get:
       tags:
-        - palace
-      summary: myWordsの一覧を取得
-  /palace/me/raw/{userID}:
-    get:
-      tags:
-        - palace
-      summary: 自分が保持しているrawPalaceを取得
-  /palace:
+        - palaces
+      summary: 自分のpalaceの一覧を取得
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palaces"
     post:
       tags:
-        - palace
-      summary: 特定のpalaceを作成
+        - palaces
+      summary: palaceを作成
+      description: embededPinのidは空でpost
       requestBody:
-        - $ref: ''
-  /palace/{palaceID}:
-    get:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PalaceRequest"
+      responses:
+        200:
+          description: OK
+  /palaces/{palaceID}:
+    get: 
       tags:
-        - palace
-      summary: 特定のpalaceを取得
+        - palaces
+      summary: 特定のpalaceを取得(いらなそう)
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palace"
     put:
-      tags:
-        - palace
+      tags: 
+        - palaces
       summary: 特定のpalaceを修正
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PalaceRequest"
+      responses:
+        200:
+          description: OK
     delete:
       tags:
-        - palace
+        - palaces
       summary: 特定のpalaceを削除
+      responses:
+        200:
+          description: OK
+  /templates/{userID}:
+    get:
+      tags:
+        - templates
+      summary: 自分が保持しているtemplateを取得
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Templates"
+    post:
+      tags:
+        - templates
+      summary: のtemplateを作成
+      description: pinのidは空でポスト
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateRequest"
+      responses: 
+        200:
+          description: OK
+  /templates/{templateID}:
+    get:
+      tags:
+        - templates
+      summary: 特定のtemplateを取得(いらなそう)
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+    put:
+      tags:
+        - templates
+      summary: 特定のtemplateを修正
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateRequest"
+      responses:
+        200:
+          description: OK
+    delete:
+      tags:
+        - templates
+      summary: 特定のtemplateを削除
+      responses:
+        200: 
+          description: OK
 
 components:
   schemas:
-    User:
-      title: User
+    LoginRequest:
       type: object
-      description: 自分の情報
       properties: 
         name: 
           type: string
           description: ユーザー名
-        hashedPass:
+        password:
           type: string
-          description: ハッシュ化されたパスワード
-        myPalaceId:
-          type: string
-          format: uuid
-          description: 自分が保持しているpalaceのID
       required:
       - name
       - password
-    Palace:
-      title: Palace
+    LoginResponse:
       type: object
-      description: 画像、地点、単語を含む記憶の宮殿
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      description: ログインしたらフロントでuserIDはポスト用に保持、名前は表示するから必要
+    Me:
+      type: object
+      properties:
+        id:
+          type: string
+    Palaces:
+      type: object
+      description: ホーム画面で必要
+      properties:
+        Palaces:
+          type: array
+          items:
+            $ref: "#/components/schemas/Palace"
+    Palace:
+      type: object
+      description: 自分の単語が埋め込まれたpalaceの情報。
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままPUTするときにid必要
+        name:
+          type: string
+        image: 
+          type: string
+          format: base64
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
+        # createdBy:
+        #   type: string
+        #   format: uuid　フロントが保持できていてpostできれば必要ない
+    EmbededPin:
+      type: object
+      description: 単語とピンのペア
+      properties: 
+        id:
+          type: string
+          format: uuid
+        x:   
+          type: number
+        y:
+          type: number
+        word:
+          type: string
+        memo: 
+          type: string
+    Templates:
+      type: array
+      items:
+        $ref: "#/components/schemas/Template"
+    Template:
+      type: object
+      description: 単語を含まない記憶の宮殿
       properties:
         id: 
           type: string
@@ -90,35 +262,68 @@ components:
           type: string
         image:
           type: string
+          format: base64
         pins: 
           type: array
           items:
             $ref: "#/components/schemas/Pin"
           description: ピンの配列
+        # memo:
+        #   type: string
         createdBy:
           type: string
-          description: rawPalaceの作成者のユーザー名
+          format: uuid
       required:
         - id
         - name
         - createdBy
-    Pin: 
-      title: Pin
+    Pin:
       type: object
-      description: 暗記対象の入力欄の座標と単語とメモ
       properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままputする時のために必要多分
         x:
-          type: integer
+          type: number
         y:
-          type: integer
-        word:
+          type: number
+      description: 単語なしのピン
+    TemplateRequest:
+      type: object
+      properties:
+        name: 
           type: string
-          description: 暗記対象
-        memo:
+        image:
           type: string
-          description: 覚え方などのメモ
+          format: base644
+        pins: 
+          type: array
+          items:
+            $ref: "#/components/schemas/Pin"
+          description: ピンの配列
+        # memo:
+        #   type: string
+        createdBy:
+          type: string
+          format: uuid
       required:
-        - x
-        - y
-      
+        - id
+        - name
+        - createdBy
+    PalaceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        image: 
+          type: string
+          format: base64
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
+        # createdBy:
+        #   type: string
+        #   format: uuid
 

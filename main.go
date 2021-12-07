@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/hackathon-winter-18/backend/model"
-	"github.com/hackathon-winter-18/backend/router"
-	"github.com/hackathon-winter-18/backend/session"
+	"github.com/hackathon-21-winter-18/backend/model"
+	"github.com/hackathon-21-winter-18/backend/router"
+	"github.com/hackathon-21-winter-18/backend/session"
 )
 
 func main() {
