@@ -77,6 +77,15 @@ func postLogin(c echo.Context) error {
 	return echo.NewHTTPError(http.StatusOK, res)
 }
 
+func postLogout(c echo.Context) error {
+	err := s.RevokeSession(c)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to revoke session: %w", err).Error())
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
+}
+
 func getWhoamI(c echo.Context) error {
 	sess, err := session.Get("sessions", c)
 	if err != nil {
