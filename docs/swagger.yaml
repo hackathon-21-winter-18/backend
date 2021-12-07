@@ -84,22 +84,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PalaceRequest"
+              $ref: "#/components/schemas/PostPalace"
       responses:
         200:
           description: OK
-  /palaces/{palaceID}:
-    get: 
-      tags:
-        - palaces
-      summary: 特定のpalaceを取得(いらなそう)
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Palace"
+  # /palaces/{palaceID}:
+  #   get: 
+  #     tags:
+  #       - palaces
+  #     summary: 特定のpalaceを取得(いらなそう)
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/Palace"
     put:
       tags: 
         - palaces
@@ -108,7 +108,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PalaceRequest"
+              $ref: "#/components/schemas/PutPalace"
       responses:
         200:
           description: OK
@@ -139,22 +139,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TemplateRequest"
+              $ref: "#/components/schemas/PostTemplate"
       responses: 
         200:
           description: OK
-  /templates/{templateID}:
-    get:
-      tags:
-        - templates
-      summary: 特定のtemplateを取得(いらなそう)
-      responses:
-        200: 
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Template"
+  # /templates/{templateID}:
+  #   get:
+  #     tags:
+  #       - templates
+  #     summary: 特定のtemplateを取得(いらなそう)
+  #     responses:
+  #       200: 
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/Template"
     put:
       tags:
         - templates
@@ -163,7 +163,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TemplateRequest"
+              $ref: "#/components/schemas/PutTemplate"
       responses:
         200:
           description: OK
@@ -280,7 +280,7 @@ components:
         y:
           type: number
       description: 単語なしのピン
-    TemplateRequest:
+    PostTemplate:
       type: object
       properties:
         name: 
@@ -302,7 +302,20 @@ components:
         - id
         - name
         - createdBy
-    PalaceRequest:
+    PutTemplate:
+      type: object
+      properties:
+        name: 
+          type: string
+        image:
+          type: string
+          format: base644
+        pins: 
+          type: array
+          items:
+            $ref: "#/components/schemas/Pin"
+          description: ピンの配列
+    PostPalace:
       type: object
       properties:
         name:
@@ -314,7 +327,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmbededPin"
-        # createdBy:
-        #   type: string
-        #   format: uuid
+        createdBy:
+          type: string
+          format: uuid
+    PutPalace:
+      type: object
+      properties:
+        name:
+          type: string
+        image: 
+          type: string
+          format: base64
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
 
