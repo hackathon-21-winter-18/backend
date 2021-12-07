@@ -35,12 +35,14 @@ func postSignUp(c echo.Context) error {
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
+		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("bcrypt generate error: %v", err))
 	}
 
 	userID, err := model.PostSignUp(c, req.Name, hashedPass)
 	if err != nil {
 		//TODO
+		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
 	}
 
@@ -63,6 +65,7 @@ func postLogin(c echo.Context) error {
 	userID, err := model.PostLogin(c, req.Name, req.Password)
 	if err != nil {
 		//TODO エラーがdbなのかhashかなのか
+		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("error: %v", err))
 	}
 

@@ -22,12 +22,16 @@ type EmbededPin struct {
 	Memo   string  `json:"memo" db:"memo"`
 }
 
+type palaceImagePath struct {
+	path string
+}
+
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE createdBy=? ", userID)
 	if err != nil {
 		return nil, err
-	} 
+	}
 
 	return palaces, nil
 }
@@ -44,7 +48,7 @@ func CreatePalace(ctx context.Context, userID uuid.UUID, name, path string) (*uu
 func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name, image string) error {
 	var count int
 
-	err := db.Get(&count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
+	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
 	if err != nil {
 		return err
 	}
@@ -65,4 +69,13 @@ func DeletePalace(ctx context.Context, palaceID uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error) {
+	var path string
+	err := db.GetContext(ctx, &path, "SELECT image FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
 }

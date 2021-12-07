@@ -76,3 +76,11 @@ func CreatePathName(ctx context.Context, base64 string) (string, error) { // go 
 	return "./assets/" + result + extension, nil
 }
 
+func RemoveImage(ctx context.Context, path string) error {
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
