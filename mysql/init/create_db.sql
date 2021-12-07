@@ -9,3 +9,20 @@ CREATE TABLE IF NOT EXISTS `users` (
   -- `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `palaces` (
+  `id` char(36) NOT NULL UNIQUE,
+  `name` varchar(20) NOT NULL,
+  `createdBy` char(36) NOT NULL,
+  `image` varchar(40) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `embededpins` (
+  `number` int NOT NULL,
+  `x` decimal(10, 2) NOT NULL, 
+  `y` decimal(10, 2) NOT NULL,
+  `word` varchar(15) NOT NULL,
+  `memo` varchar(30) NOT NULL,
+  `palaceID` char(36) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

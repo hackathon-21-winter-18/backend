@@ -204,7 +204,6 @@ components:
       properties:
         id:
           type: string
-          format: uuid
     Palaces:
       type: object
       description: ホーム画面で必要
@@ -241,9 +240,9 @@ components:
           type: string
           format: uuid
         x:   
-          type: integer
+          type: number
         y:
-          type: integer
+          type: number
         word:
           type: string
         memo: 
@@ -286,9 +285,9 @@ components:
           format: uuid
           description: そのままputする時のために必要多分
         x:
-          type: integer
+          type: number
         y:
-          type: integer
+          type: number
       description: 単語なしのピン
     TemplateRequest:
       type: object
