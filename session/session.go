@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/gorilla/sessions"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/srinathgs/mysqlstore"
 )
 
@@ -35,7 +36,17 @@ func (s *sess) Store() sessions.Store {
 	return s.store
 }
 func (s *sess) RevokeSession(c echo.Context) error {
-	//TODO
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		return fmt.Errorf("Failed In Getting Session: %w", err)
+	}
+
+	// cookieを削除
+	err = s.store.Delete(c.Request(), c.Response(), sess)
+	if err != nil {
+		return fmt.Errorf("failed to delete session: %w", err)
+	}
+
 	return nil
 }
 

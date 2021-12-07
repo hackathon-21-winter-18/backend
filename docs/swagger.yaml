@@ -202,7 +202,6 @@ components:
       properties:
         id:
           type: string
-          format: uuid
     Palaces:
       type: array
       items:

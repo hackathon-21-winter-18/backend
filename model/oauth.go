@@ -4,41 +4,51 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	Username   string `json:"username,omitempty" db:"username"`
-	HashedPass string `json:"-" db:"hashedPass"`
+	ID         uuid.UUID `json:"id,omitempty" db:"id"`
+	Name       string    `json:"name,omitempty" db:"name"`
+	HashedPass string    `json:"-" db:"hashedPass"`
 }
 
-func PostSignUp(c echo.Context, username string, hashedPass []byte) error {
+func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, error) {
 	var count int
 
-	err := db.Get(&count, "SELECT COUNT(*) FROM users WHERE Username=?", username)
+	err := db.Get(&count, "SELECT COUNT(*) FROM users WHERE name=?", name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if count > 0 {
-		return c.String(http.StatusConflict, "ユーザーが既に存在しています")
+		return nil, c.String(http.StatusConflict, "ユーザーが既に存在しています")
 	}
 
-	_, err = db.Exec("INSERT INTO users (username, hashedPass) VALUES (?, ?)", username, hashedPass)
+	userID := uuid.New()
+	_, err = db.Exec("INSERT INTO users (id, name, hashedPass) VALUES (?, ?, ?)", userID, name, hashedPass)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return err
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		panic(err)
+	}
+	sess.Values["userID"] = userID.String()
+	sess.Save(c.Request(), c.Response())
+
+	return &userID, err
 }
 
-func PostLogin(c echo.Context, username, password string) error {
+func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	var user User
-	err := db.Get(&user, "SELECT * FROM users WHERE username=?", username)
+	err := db.Get(&user, "SELECT * FROM users WHERE name=?", name)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
+		return nil, c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(password))
 	if err != nil {
@@ -48,15 +58,15 @@ func PostLogin(c echo.Context, username, password string) error {
 		// } else {
 		// 	return c.NoContent(http.StatusInternalServerError)
 		// }
-		return err
+		return nil, err
 	}
 
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		panic(err)
 	}
-	sess.Values["userName"] = username
+	sess.Values["userID"] = user.ID.String()
 	sess.Save(c.Request(), c.Response())
 
-	return nil
+	return &user.ID, nil
 }
