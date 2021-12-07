@@ -9,8 +9,10 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+var s sess.Session
+
 func SetRouting(sess sess.Session) {
-	// s := sess
+	s = sess
 
 	e := echo.New()
 	e.Use(session.Middleware(sess.Store()))
@@ -29,15 +31,16 @@ func SetRouting(sess sess.Session) {
 		{
 			apiOauth.POST("/signup", postSignUp)
 			apiOauth.POST("/login", postLogin)
-			apiOauth.GET("/whoamI", getWhoamI)
+			apiOauth.POST("/logout", postLogout, userAuthMiddleware)
+			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
 		}
 
 		apiPalaces := api.Group("/palaces")
 		{
-			apiPalaces.GET("/me/:userID", getPalaces)
-			apiPalaces.POST("/me/:userID", postPalace)
-			apiPalaces.PUT("/:palaceID", putPalace)
-			apiPalaces.DELETE("/:palaceID", deletePalace)
+			apiPalaces.GET("/me/:userID", getPalaces, userAuthMiddleware)
+			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
+			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
+			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 		}
 
 
