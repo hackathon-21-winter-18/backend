@@ -46,7 +46,7 @@ func SetRouting(sess sess.Session) {
 
 	}
 
-	err := e.Start(":3000")
+	err := e.Start(":8080")
 	if err != nil {
 		panic(err)
 	}
