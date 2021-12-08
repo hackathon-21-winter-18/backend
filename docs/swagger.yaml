@@ -68,6 +68,10 @@ paths:
     get:
       tags:
         - palaces
+      parameters:
+        - $ref: "#/components/parameters/sortQuery"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 公開されているpalaceの一覧を取得
       responses:
         200:
@@ -80,6 +84,10 @@ paths:
     get:
       tags:
         - palaces
+      parameters:
+        - $ref: "#/components/parameters/sortQueryMe"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 自分のpalaceの一覧を取得
       responses:
         200: 
@@ -148,6 +156,10 @@ paths:
     get:
       tags:
         - templates
+      parameters:
+        - $ref: "#/components/parameters/sortQuery"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 公開されているtemplateの一覧を取得
       responses:
         200:
@@ -160,6 +172,10 @@ paths:
     get:
       tags:
         - templates
+      parameters:
+        - $ref: "#/components/parameters/sortQueryMe"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 自分が保持しているtemplateを取得
       responses:
         200:
@@ -225,6 +241,35 @@ paths:
         200:
           description: OK
 components:
+  parameters:
+    sortQuery:
+      name: sort
+      description: 並び順 (公開日時が新しい "shared_at", 公開日時が古い "-shared_at", 保存したユーザーが多い順 "savedcount")
+      required: false
+      in: query
+      schema:
+        type: string
+    sortQueryMe:
+      name: sort
+      description: 並び順 (作成日時が新しい "created_at", 作成日時が古い "-created_at")
+      required: false
+      in: query
+      schema:
+        type: string
+    maxPins:
+      name: maxpins
+      description: ピンの数の最大値
+      required: false
+      in: query
+      schema:
+        type: string
+    minPins:
+      name: minpins
+      description: ピンの数の最小値
+      required: false
+      in: query
+      schema:
+        type: string
   schemas:
     LoginRequest:
       type: object
@@ -424,9 +469,6 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        pinsCount:
-          type: integer
-          description: ピンの個数
         createrName:
           type: string
           description: 作成者のユーザー名
@@ -455,9 +497,6 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        pinsCount:
-          type: integer
-          description: ピンの個数
         createrName:
           type: string
           description: 作成者のユーザー名
