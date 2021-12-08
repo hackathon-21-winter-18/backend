@@ -56,7 +56,7 @@ paths:
     get:
       tags:
         - oauth
-      summary: 自分のユーザーIDを取得
+      summary: 自分のユーザーIDとユーザー名を取得
       responses:
         200: 
           description: OK
@@ -64,6 +64,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Me"
+  /palaces:
+    get:
+      tags:
+        - palaces
+      summary: 公開されているpalaceの一覧を取得
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/SharedPalaces"
   /palaces/me/{userID}:
     get:
       tags:
@@ -119,6 +131,31 @@ paths:
       responses:
         200:
           description: OK
+  /palaces/share/{palaceID}:
+    post:
+      tags: 
+        - palaces
+      summary: 公開非公開を設定
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Share"
+      responses:
+        200:
+          description: OK
+  /templates:
+    get:
+      tags:
+        - templates
+      summary: 公開されているtemplateの一覧を取得
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/SharedTemplates"
   /templates/me/{userID}:
     get:
       tags:
@@ -174,7 +211,19 @@ paths:
       responses:
         200: 
           description: OK
-
+  /templates/share/{templateID}:
+    post:
+      tags: 
+        - templates
+      summary: 公開非公開を設定
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Share"
+      responses:
+        200:
+          description: OK
 components:
   schemas:
     LoginRequest:
@@ -201,6 +250,9 @@ components:
       type: object
       properties:
         id:
+          type: string
+          format: uuid
+        name:
           type: string
     Palaces:
       type: array
@@ -342,4 +394,70 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmbededPin"
-
+    Share:
+      type: object
+      properties:
+        share:
+          type: boolean
+    SharedPalaces:
+      type: array
+      items:
+        $ref: "#/components/schemas/SharedPalace"
+      description: ホーム画面で必要
+    SharedPalace:
+      type: object
+      description: 自分の単語が埋め込まれたpalaceの情報。
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままPUTするときにid必要
+        name:
+          type: string
+        image: 
+          type: string
+          format: base64
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmbededPin"
+        savedCount:
+          type: integer
+          description: 保存しているユーザー数
+        pinsCount:
+          type: integer
+          description: ピンの個数
+        createrName:
+          type: string
+          description: 作成者のユーザー名
+    SharedTemplates:
+      type: array
+      items:
+        $ref: "#/components/schemas/SharedTemplate"
+      description: ホーム画面で必要
+    SharedTemplate:
+      type: object
+      description: 自分の単語が埋め込まれたpalaceの情報。
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: そのままPUTするときにid必要
+        name:
+          type: string
+        image: 
+          type: string
+          format: base64
+        embededPins:
+          type: array
+          items:
+            $ref: "#/components/schemas/Pin"
+        savedCount:
+          type: integer
+          description: 保存しているユーザー数
+        pinsCount:
+          type: integer
+          description: ピンの個数
+        createrName:
+          type: string
+          description: 作成者のユーザー名
