@@ -56,8 +56,5 @@ func postTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	//TODO 多分resけす
-	res := P{ID: *templateID}
-
-	return echo.NewHTTPError(http.StatusOK, res)
+	return echo.NewHTTPError(http.StatusOK)
 }
