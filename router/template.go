@@ -15,6 +15,12 @@ type PostTemplate struct {
 	CreatedBy    uuid.UUID           `json:"createdBy"`
 }
 
+type PutTemplate struct {
+	Name         string              `json:"name"`
+	Image        string              `json:"image"`
+	TemplatePins []model.TemplatePin `json:"pins"`
+}
+
 func getTemplates(c echo.Context) error {
 	ctx := c.Request().Context()
 	templates, err := model.GetTemplates(ctx)
@@ -88,8 +94,8 @@ func postTemplate(c echo.Context) error {
 }
 
 func putTemplate(c echo.Context) error {
-	var req PutPalace
-	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	var req PutTemplate
+	templateID, err := uuid.Parse(c.Param("templateID"))
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -101,7 +107,7 @@ func putTemplate(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
+	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -118,19 +124,19 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err = model.DeleteEmbededPins(ctx, palaceID)
+	err = model.DeleteTemplatePins(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, updatedEmbededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Memo)
+	for _, updatedTemplatePin := range req.TemplatePins {
+		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)

@@ -49,3 +49,11 @@ func CreateTemplatePin(ctx context.Context, number int, templateID uuid.UUID, x,
 	}
 	return nil
 }
+
+func DeleteTemplatePins(ctx context.Context, templateID uuid.UUID) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM templatepins WHERE templateID=? ", templateID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

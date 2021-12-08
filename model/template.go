@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -36,4 +37,39 @@ func CreateTemplate(ctx context.Context, userID, createdBy uuid.UUID, name, path
 		return nil, err
 	}
 	return &templateID, nil
+}
+
+func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name, image string) error {
+	var count int
+
+	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM templates WHERE id=?", templateID)
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		// TODO badrequestは返せてるけどメッセージはいってない
+		return fmt.Errorf("存在しない宮殿です")
+	}
+	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=? WHERE id=? ", name, image, templateID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteTemplate(ctx context.Context, templateID uuid.UUID) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM templates WHERE id=? ", templateID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetTemplateImagePath(ctx context.Context, templateID uuid.UUID) (string, error) {
+	var path string
+	err := db.GetContext(ctx, &path, "SELECT image FROM templates WHERE id=? ", templateID)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
 }
