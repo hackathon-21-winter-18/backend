@@ -32,6 +32,16 @@ func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 	return nil
 }
 
+func GetTemplatePins(ctx context.Context, TemplateID uuid.UUID) ([]TemplatePin, error) {
+	var templatePins []TemplatePin
+	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y FROM templatepins WHERE templateID=? ORDER BY number ASC ", TemplateID)
+	if err != nil {
+		return nil, err
+	}
+
+	return templatePins, nil
+}
+
 func CreateTemplatePin(ctx context.Context, number int, templateID uuid.UUID, x, y float32) error {
 	_, err := db.ExecContext(ctx, "INSERT INTO templatepins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
 	if err != nil {

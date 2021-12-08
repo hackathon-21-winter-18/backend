@@ -15,6 +15,34 @@ type PostTemplate struct {
 	CreatedBy    uuid.UUID           `json:"createdBy"`
 }
 
+func getTemplates(c echo.Context) error {
+	ctx := c.Request().Context()
+	templates, err := model.GetTemplates(ctx)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	for _, template := range templates {
+		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		for _, templatePin := range templatePins {
+			template.TemplatePins = append(template.TemplatePins, templatePin)
+		}
+
+		template.Image, err = model.EncodeTobase64(ctx, template.Image)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+	}
+
+	return echo.NewHTTPError(http.StatusOK, templates)
+}
+
 func postTemplate(c echo.Context) error {
 	var req PostTemplate
 	userID, err := uuid.Parse(c.Param("userID"))
