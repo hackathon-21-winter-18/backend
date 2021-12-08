@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -14,6 +15,10 @@ type User struct {
 	ID         uuid.UUID `json:"id,omitempty" db:"id"`
 	Name       string    `json:"name,omitempty" db:"name"`
 	HashedPass string    `json:"-" db:"hashedPass"`
+}
+
+type Me struct {
+	Name string `db:"name"`
 }
 
 func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, error) {
@@ -48,7 +53,7 @@ func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	var user User
 	err := db.Get(&user, "SELECT * FROM users WHERE name=?", name)
 	if err != nil {
-		return nil, c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
+		return nil, c.String(http.StatusBadRequest, fmt.Sprintf("db error: %v", err))
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(password))
 	if err != nil {
@@ -69,4 +74,14 @@ func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	sess.Save(c.Request(), c.Response())
 
 	return &user.ID, nil
+}
+
+func GetMe(ctx context.Context, userID string) (string, error) {
+	var me Me
+	err := db.GetContext(ctx, &me, "SELECT name FROM users WHERE id=? ", userID)
+	if err != nil {
+		return "", err
+	}
+
+	return me.Name, nil
 }
