@@ -31,3 +31,11 @@ func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 	}
 	return nil
 }
+
+func CreateTemplatePin(ctx context.Context, number int, templateID uuid.UUID, x, y float32) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO templatepins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

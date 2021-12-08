@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	sess "github.com/hackathon-21-winter-18/backend/session" // sessだけ使うって意味？
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
@@ -43,7 +43,10 @@ func SetRouting(sess sess.Session) {
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 		}
 
-
+		apiTemplages := api.Group("/templates")
+		{
+			apiTemplages.POST("/me/:userID", postTemplate, userAuthMiddleware)
+		}
 	}
 
 	err := e.Start(":3000")
