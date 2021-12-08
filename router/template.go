@@ -151,3 +151,37 @@ func putTemplate(c echo.Context) error {
 
 	return echo.NewHTTPError(http.StatusOK)
 }
+
+func deleteTemplate(c echo.Context) error {
+	templateID, err := uuid.Parse(c.Param("templateID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	err = model.RemoveImage(ctx, unupdatedPath)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	err = model.DeleteTemplate(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	err = model.DeleteTemplatePins(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
+}
