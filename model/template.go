@@ -10,7 +10,7 @@ type Template struct {
 	ID           uuid.UUID     `json:"id" db:"id"`
 	Name         string        `json:"name" db:"name"`
 	Image        string        `json:"image" db:"image"`
-	TemplatePins []TemplatePin `json:"templatePins"`
+	TemplatePins []TemplatePin `json:"pins"`
 }
 
 type TemplatePin struct {

@@ -11,7 +11,7 @@ import (
 type PostTemplate struct {
 	Name         string              `json:"name"`
 	Image        string              `json:"image"`
-	TemplatePins []model.TemplatePin `json:"templatePins"`
+	TemplatePins []model.TemplatePin `json:"pins"`
 	CreatedBy    uuid.UUID           `json:"createdBy"`
 }
 
@@ -72,6 +72,65 @@ func postTemplate(c echo.Context) error {
 	for _, templatePin := range req.TemplatePins {
 		// create template pin
 		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+	}
+
+	err = model.DecodeToImageAndSave(ctx, req.Image, path)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
+}
+
+func putTemplate(c echo.Context) error {
+	var req PutPalace
+	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	err = model.RemoveImage(ctx, unupdatedPath)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	path, err := model.CreatePathName(ctx, req.Image)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	err = model.DeleteEmbededPins(ctx, palaceID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	for _, updatedEmbededPin := range req.EmbededPins {
+		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Memo)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
