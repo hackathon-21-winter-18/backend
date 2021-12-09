@@ -8,15 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type PostPalace struct {
-	Name        string             `json:"name"`
-	Image       string             `json:"image"`
-	EmbededPins []model.EmbededPin `json:"embededPins"`
-	CreatedBy   uuid.UUID          `json:"createdBy"`
-}
-type PutPalace struct {
-	Name        string             `json:"name"`
-	Image       string             `json:"image"`
+type PalaceRequest struct {
+	Name        string       `json:"name"`
+	Image       string       `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 }
 
@@ -60,7 +54,7 @@ func getPalaces(c echo.Context) error {
 }
 
 func postPalace(c echo.Context) error {
-	var req PostPalace
+	var req PalaceRequest
 	userID, err := uuid.Parse(c.Param("userID"))
 	if err != nil {
 		c.Logger().Error(err)
@@ -79,7 +73,7 @@ func postPalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	palaceID, err := model.CreatePalace(ctx, userID, req.CreatedBy, req.Name, path)
+	palaceID, err := model.CreatePalace(ctx, userID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -107,7 +101,7 @@ func postPalace(c echo.Context) error {
 }
 
 func putPalace(c echo.Context) error {
-	var req PutPalace
+	var req PalaceRequest
 	palaceID, err := uuid.Parse(c.Param("palaceID"))
 	if err != nil {
 		c.Logger().Error(err)
@@ -183,7 +177,7 @@ func deletePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
+	
 	err = model.DeletePalace(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
