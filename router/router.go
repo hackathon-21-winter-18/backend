@@ -21,6 +21,7 @@ func SetRouting(sess sess.Session) {
 		AllowOrigins: []string{"http://localhost:8080"},
 		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
 	}))
 
 	api := e.Group("/api")
