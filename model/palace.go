@@ -93,13 +93,14 @@ func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
 			return err
 		}
 		if firstShared.FirstShared {
-			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=? WHERE id=? ", share, palaceID)
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=?, shared_at=? WHERE id=? ", share, date, palaceID)
 			if err != nil {
 				return err
 			}
 		} else {
 			date := time.Now()
-			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=true, firstshared=true, firstshared_at=? WHERE id=? ", date, palaceID)
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=true, firstshared=true, firstshared_at=?, shared_at=? WHERE id=? ", date, date, palaceID)
 			if err != nil {
 				return err
 			}
@@ -112,4 +113,8 @@ func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
 	}
 
 	return nil
+}
+
+func Location() *time.Location {
+	return time.FixedZone("Asia/Tokyo", 9*60*60)
 }
