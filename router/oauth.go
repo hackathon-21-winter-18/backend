@@ -22,7 +22,8 @@ type LoginResponse struct {
 }
 
 type Me struct {
-	ID string `json:"id"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func postSignUp(c echo.Context) error {
@@ -92,8 +93,15 @@ func getWhoamI(c echo.Context) error {
 		return errSessionNotFound(err)
 	}
 
-	//TODO uuidはマップできなかったから文字列でやってるけどこれでいいのかな
-	return c.JSON(http.StatusOK, Me{
-		ID: sess.Values["userID"].(string),
+	userID := sess.Values["userID"].(string)
+	ctx := c.Request().Context()
+	name, err := model.GetMe(ctx, userID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK, Me{
+		ID: userID,
+		Name: name,
 	})
 }

@@ -17,6 +17,7 @@ func SetRouting(sess sess.Session) {
 	e := echo.New()
 	e.Use(session.Middleware(sess.Store()))
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORS())
 
 	api := e.Group("/api")
 	{
@@ -37,16 +38,18 @@ func SetRouting(sess sess.Session) {
 
 		apiPalaces := api.Group("/palaces")
 		{
-			apiPalaces.GET("/me/:userID", getPalaces, userAuthMiddleware)
+			apiPalaces.GET("/palaces", getPalaces, userAuthMiddleware)
+			apiPalaces.GET("/me/:userID", getMyPalaces, userAuthMiddleware)
 			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
+			apiPalaces.POST("/share/:palaceID", sharePalace, userAuthMiddleware)
 		}
 
 
 	}
 
-	err := e.Start(":3000")
+	err := e.Start(":8080")
 	if err != nil {
 		panic(err)
 	}

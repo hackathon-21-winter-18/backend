@@ -37,7 +37,7 @@ services:
     depends_on: 
       - db
     ports: # ホストOSのポートとコンテナのポートをつなげる 
-      - "3000:3000"
+      - "8080:8080"
 
   # nginx:
   #   # build: ./nginx
