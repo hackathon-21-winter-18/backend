@@ -140,7 +140,7 @@ paths:
         200:
           description: OK
   /palaces/share/{palaceID}:
-    post:
+    put:
       tags: 
         - palaces
       summary: 公開非公開を設定
@@ -228,7 +228,7 @@ paths:
         200: 
           description: OK
   /templates/share/{templateID}:
-    post:
+    put:
       tags: 
         - templates
       summary: 公開非公開を設定
