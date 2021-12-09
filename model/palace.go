@@ -77,15 +77,6 @@ func DeletePalace(ctx context.Context, palaceID uuid.UUID) error {
 	return nil
 }
 
-func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error) {
-	var path string
-	err := db.GetContext(ctx, &path, "SELECT image FROM palaces WHERE id=? ", palaceID)
-	if err != nil {
-		return "", err
-	}
-	return path, nil
-}
-
 func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
 	var firstShared firstShared
 	if share {

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 func EncodeTobase64(ctx context.Context, path string) (string, error) {
@@ -41,6 +43,15 @@ func DecodeToImageAndSave(ctx context.Context, encoded, path string) error {
 
 	file.Write(data)
 	return nil
+}
+
+func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error) {
+	var path string
+	err := db.GetContext(ctx, &path, "SELECT image FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
 }
 
 func CreatePathName(ctx context.Context, base64 string) (string, error) { // go run main.goをやりなおしても値は変わらない
