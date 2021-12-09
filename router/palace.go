@@ -208,10 +208,23 @@ func deletePalace(c echo.Context) error {
 }
 
 func sharePalace(c echo.Context) error {
-	// palaceID, err := uuid.Parse(c.Param("palaceID"))
-	// if err != nil {
-	// 	c.Logger().Error(err)
-	// 	return echo.NewHTTPError(http.StatusBadRequest, err)
-	// }
-	return nil
+	var req Share
+	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	err = model.SharePalace(ctx, palaceID, req.Share)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
 }

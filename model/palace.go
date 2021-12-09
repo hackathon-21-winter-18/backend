@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -24,6 +25,10 @@ type EmbededPin struct {
 
 type palaceImagePath struct {
 	path string
+}
+
+type firstShared struct {
+	FirstShared bool `db:"firstshared"`
 }
 
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
@@ -78,4 +83,33 @@ func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error)
 		return "", err
 	}
 	return path, nil
+}
+
+func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
+	var firstShared firstShared
+	if share {
+		err := db.GetContext(ctx, &firstShared, "SELECT firstshared FROM palaces WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
+		if firstShared.FirstShared {
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=? WHERE id=? ", share, palaceID)
+			if err != nil {
+				return err
+			}
+		} else {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=true, firstshared=true, firstshared_at=? WHERE id=? ", date, palaceID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		_, err := db.ExecContext(ctx, "UPDATE palaces SET share=false WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

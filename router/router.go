@@ -43,7 +43,7 @@ func SetRouting(sess sess.Session) {
 			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
-			apiPalaces.POST("/share/:palaceID", sharePalace, userAuthMiddleware)
+			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
 		}
 
 
