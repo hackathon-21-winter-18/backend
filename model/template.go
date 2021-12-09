@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -82,4 +83,34 @@ func GetTemplateImagePath(ctx context.Context, templateID uuid.UUID) (string, er
 		return "", err
 	}
 	return path, nil
+}
+
+func ShareTemplate(ctx context.Context, templateID uuid.UUID, share bool) error {
+	var firstShared firstShared
+	if share {
+		err := db.GetContext(ctx, &firstShared, "SELECT firstshared FROM templates WHERE id=? ", templateID)
+		if err != nil {
+			return err
+		}
+		if firstShared.FirstShared {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE templates SET share=?, shared_at=? WHERE id=? ", share, date, templateID)
+			if err != nil {
+				return err
+			}
+		} else {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE templates SET share=true, firstshared=true, firstshared_at=?, shared_at=? WHERE id=? ", date, date, templateID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		_, err := db.ExecContext(ctx, "UPDATE templates SET share=false WHERE id=? ", templateID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

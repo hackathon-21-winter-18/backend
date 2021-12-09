@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS `templates` (
   `name` varchar(20) NOT NULL,
   `createdBy` char(36) NOT NULL,
   `image` varchar(40) NOT NULL,
+  `heldBy` char(36) NULL,
+  `share` boolean DEFAULT False,  
+  `firstshared` boolean DEFAULT False,
+  `firstshared_at` datetime NULL,
+  `shared_at` datetime NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

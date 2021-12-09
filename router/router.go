@@ -53,6 +53,7 @@ func SetRouting(sess sess.Session) {
 			apiTemplages.POST("/me/:userID", postTemplate, userAuthMiddleware)
 			apiTemplages.PUT("/:templateID", putTemplate, userAuthMiddleware)
 			apiTemplages.DELETE("/:templateID", deleteTemplate, userAuthMiddleware)
+			apiTemplages.PUT("/share/:templateID", shareTemplate, userAuthMiddleware)
 		}
 	}
 

@@ -219,3 +219,25 @@ func deleteTemplate(c echo.Context) error {
 
 	return echo.NewHTTPError(http.StatusOK)
 }
+
+func shareTemplate(c echo.Context) error {
+	var req Share
+	templateID, err := uuid.Parse(c.Param("templateID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	err = model.ShareTemplate(ctx, templateID, req.Share)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
+}
