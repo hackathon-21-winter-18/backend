@@ -17,9 +17,9 @@ func SetRouting(sess sess.Session) {
 	e := echo.New()
 	e.Use(session.Middleware(sess.Store()))
 	e.Use(middleware.Logger())
+	
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"http://localhost:8080"},
-		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowOrigins: []string{"http://localhost:3000"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
@@ -37,15 +37,15 @@ func SetRouting(sess sess.Session) {
 		{
 			apiOauth.POST("/signup", postSignUp)
 			apiOauth.POST("/login", postLogin)
-			apiOauth.POST("/logout", postLogout)
-			apiOauth.GET("/whoamI", getWhoamI)
+			apiOauth.POST("/logout", postLogout, userAuthMiddleware)
+			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
 		}
 
 		apiPalaces := api.Group("/palaces")
 		{
-			apiPalaces.GET("/palaces", getPalaces)
-			apiPalaces.GET("/me/:userID", getMyPalaces)
-			apiPalaces.POST("/me/:userID", postPalace)
+			apiPalaces.GET("/palaces", getPalaces, userAuthMiddleware)
+			apiPalaces.GET("/me/:userID", getMyPalaces, userAuthMiddleware)
+			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
