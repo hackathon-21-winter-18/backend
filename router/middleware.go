@@ -11,7 +11,6 @@ func userAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get("sessions", c)
 		if err != nil {
-			// TODO
 			c.Logger().Error(err)
 			return errSessionNotFound(err)
 		}

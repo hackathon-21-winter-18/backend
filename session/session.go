@@ -38,13 +38,13 @@ func (s *sess) Store() sessions.Store {
 func (s *sess) RevokeSession(c echo.Context) error {
 	sess, err := session.Get("sessions", c)
 	if err != nil {
-		return fmt.Errorf("Failed In Getting Session: %w", err)
+		return fmt.Errorf("Failed in getting session: %w", err)
 	}
 
 	// cookieを削除
 	err = s.store.Delete(c.Request(), c.Response(), sess)
 	if err != nil {
-		return fmt.Errorf("failed to delete session: %w", err)
+		return fmt.Errorf("Failed to delete session: %w", err)
 	}
 
 	return nil

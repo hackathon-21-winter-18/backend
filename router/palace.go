@@ -44,7 +44,7 @@ func getMyPalaces(c echo.Context) error {
 	palaces, err := model.GetPalaces(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, palace := range palaces {

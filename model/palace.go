@@ -34,7 +34,7 @@ type firstShared struct {
 
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE createdBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
