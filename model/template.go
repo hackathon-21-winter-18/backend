@@ -61,7 +61,8 @@ func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name, image strin
 		// TODO badrequestは返せてるけどメッセージはいってない
 		return fmt.Errorf("存在しない宮殿です")
 	}
-	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=? WHERE id=? ", name, image, templateID)
+	date := time.Now()
+	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=?, update_at=? WHERE id=? ", name, image, date, templateID)
 	if err != nil {
 		return err
 	}
