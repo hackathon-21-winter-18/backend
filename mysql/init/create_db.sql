@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
   `x` decimal(10, 2) NOT NULL, 
   `y` decimal(10, 2) NOT NULL,
   `word` varchar(15) NULL,
-  `memo` varchar(30) NULL,
+  `place` varchar(15) NULL,
+  `do` varchar(15) NULL,
   `palaceID` char(36) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

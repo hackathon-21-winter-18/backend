@@ -20,7 +20,8 @@ type EmbededPin struct {
 	X      float32 `json:"x" db:"x"`
 	Y      float32 `json:"y" db:"y"`
 	Word   string  `json:"word" db:"word"`
-	Memo   string  `json:"memo" db:"memo"`
+	Place  string  `json:"place" db:"place"`
+	Do     string  `json:"do" db:"do"`
 }
 
 type palaceImagePath struct {
