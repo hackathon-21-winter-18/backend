@@ -8,7 +8,7 @@ import (
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
-	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, memo FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
+	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, do FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -16,8 +16,8 @@ func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, erro
 	return embededPins, nil
 }
 
-func CreateEmbededPin(ctx context.Context, number int, palaceID uuid.UUID, x, y float32, word string, memo string) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, memo, palaceID) VALUES (?, ?, ?, ?, ?, ?) ", number, x, y, word, memo, palaceID)
+func CreateEmbededPin(ctx context.Context, number int, palaceID uuid.UUID, x, y float32, word, place, do string) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, do, palaceID) VALUES (?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, do, palaceID)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -19,11 +20,16 @@ type EmbededPin struct {
 	X      float32 `json:"x" db:"x"`
 	Y      float32 `json:"y" db:"y"`
 	Word   string  `json:"word" db:"word"`
-	Memo   string  `json:"memo" db:"memo"`
+	Place  string  `json:"place" db:"place"`
+	Do     string  `json:"do" db:"do"`
 }
 
 type palaceImagePath struct {
 	path string
+}
+
+type firstShared struct {
+	FirstShared bool `db:"firstshared"`
 }
 
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
@@ -78,4 +84,38 @@ func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error)
 		return "", err
 	}
 	return path, nil
+}
+
+func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
+	var firstShared firstShared
+	if share {
+		err := db.GetContext(ctx, &firstShared, "SELECT firstshared FROM palaces WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
+		if firstShared.FirstShared {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=?, shared_at=? WHERE id=? ", share, date, palaceID)
+			if err != nil {
+				return err
+			}
+		} else {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=true, firstshared=true, firstshared_at=?, shared_at=? WHERE id=? ", date, date, palaceID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		_, err := db.ExecContext(ctx, "UPDATE palaces SET share=false WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func Location() *time.Location {
+	return time.FixedZone("Asia/Tokyo", 9*60*60)
 }

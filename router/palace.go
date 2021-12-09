@@ -94,7 +94,7 @@ func postPalace(c echo.Context) error {
 	}
 
 	for _, embededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Memo)
+		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Place, embededPin.Do)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -157,7 +157,7 @@ func putPalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	for _, updatedEmbededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Memo)
+		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Do)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -208,10 +208,23 @@ func deletePalace(c echo.Context) error {
 }
 
 func sharePalace(c echo.Context) error {
-	// palaceID, err := uuid.Parse(c.Param("palaceID"))
-	// if err != nil {
-	// 	c.Logger().Error(err)
-	// 	return echo.NewHTTPError(http.StatusBadRequest, err)
-	// }
-	return nil
+	var req Share
+	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	err = model.SharePalace(ctx, palaceID, req.Share)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK)
 }

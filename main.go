@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hackathon-21-winter-18/backend/model"
 	"github.com/hackathon-21-winter-18/backend/router"
@@ -9,6 +10,9 @@ import (
 )
 
 func main() {
+	time.Local = time.FixedZone("Local", 9*60*60)
+	time.LoadLocation("Local")
+
 	db, err := model.InitDB()
 	if err != nil {
 		panic(fmt.Errorf("DB Error: %w", err))
