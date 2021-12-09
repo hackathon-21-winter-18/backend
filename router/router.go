@@ -18,6 +18,10 @@ func SetRouting(sess sess.Session) {
 	e.Use(session.Middleware(sess.Store()))
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		// AllowOrigins: []string{"https://labstack.com", "https://labstack.net"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 
 	api := e.Group("/api")
 	{
