@@ -20,12 +20,20 @@ type PutPalace struct {
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 }
 
+type Share struct {
+	Share bool `json:"share"`
+}
+
 type P struct {
 	//TODO 多分消す
 	ID uuid.UUID `json:"id"`
 }
 
 func getPalaces(c echo.Context) error {
+	return nil
+}
+
+func getMyPalaces(c echo.Context) error {
 	userID, err := uuid.Parse(c.Param("userID"))
 	if err != nil {
 		c.Logger().Error(err)
@@ -196,5 +204,14 @@ func deletePalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
+	return echo.NewHTTPError(http.StatusOK)
+}
+
+func sharePalace(c echo.Context) error {
+	// palaceID, err := uuid.Parse(c.Param("palaceID"))
+	// if err != nil {
+	// 	c.Logger().Error(err)
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err)
+	// }
 	return nil
 }
