@@ -378,10 +378,6 @@ components:
           type: number
         y:
           type: number
-        place:
-          type: string
-        do:
-          type: string
       description: 単語なしのピン
     PostTemplate:
       type: object
