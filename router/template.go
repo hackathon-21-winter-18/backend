@@ -23,7 +23,41 @@ type PutTemplate struct {
 
 func getTemplates(c echo.Context) error {
 	ctx := c.Request().Context()
-	templates, err := model.GetTemplates(ctx)
+	templates, err := model.GetAllTemplates(ctx)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	for _, template := range templates {
+		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		for _, templatePin := range templatePins {
+			template.TemplatePins = append(template.TemplatePins, templatePin)
+		}
+
+		template.Image, err = model.EncodeTobase64(ctx, template.Image)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+	}
+
+	return echo.NewHTTPError(http.StatusOK, templates)
+}
+
+func getMyTemplates(c echo.Context) error {
+	userID, err := uuid.Parse(c.Param("userID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	templates, err := model.GetTemplates(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)

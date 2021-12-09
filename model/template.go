@@ -20,9 +20,19 @@ type TemplatePin struct {
 	Y      float32 `json:"y" db:"y"`
 }
 
-func GetTemplates(ctx context.Context) ([]*Template, error) {
+func GetAllTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
 	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates")
+	if err != nil {
+		return nil, err
+	}
+
+	return templates, nil
+}
+
+func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
+	var templates []*Template
+	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates WHERE createdBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
