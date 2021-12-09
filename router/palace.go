@@ -9,9 +9,13 @@ import (
 )
 
 type PalaceRequest struct {
-	Name        string       `json:"name"`
-	Image       string       `json:"image"`
+	Name        string             `json:"name"`
+	Image       string             `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
+}
+
+type Share struct {
+	Share bool `json:"share"`
 }
 
 type P struct {
@@ -20,6 +24,10 @@ type P struct {
 }
 
 func getPalaces(c echo.Context) error {
+	return nil
+}
+
+func getMyPalaces(c echo.Context) error {
 	userID, err := uuid.Parse(c.Param("userID"))
 	if err != nil {
 		c.Logger().Error(err)
@@ -177,7 +185,7 @@ func deletePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	
+
 	err = model.DeletePalace(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
@@ -190,5 +198,13 @@ func deletePalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	return nil
+	return echo.NewHTTPError(http.StatusOK)
+}
+
+func sharePalace(c echo.Context) error {
+	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
 }
