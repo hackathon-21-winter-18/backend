@@ -54,8 +54,8 @@ func SetRouting(sess sess.Session) {
 		apiTemplages := api.Group("/templates")
 		{
 			apiTemplages.GET("", getTemplates, userAuthMiddleware)
-			apiTemplages.GET("/me/:userID", getMyTemplates, userAuthMiddleware)
-			apiTemplages.POST("/me/:userID", postTemplate, userAuthMiddleware)
+			apiTemplages.GET("/me", getMyTemplates, userAuthMiddleware)
+			apiTemplages.POST("/me", postTemplate, userAuthMiddleware)
 			apiTemplages.PUT("/:templateID", putTemplate, userAuthMiddleware)
 			apiTemplages.DELETE("/:templateID", deleteTemplate, userAuthMiddleware)
 			apiTemplages.PUT("/share/:templateID", shareTemplate, userAuthMiddleware)

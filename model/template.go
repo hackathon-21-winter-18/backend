@@ -15,12 +15,6 @@ type Template struct {
 	TemplatePins []TemplatePin `json:"pins"`
 }
 
-type TemplatePin struct {
-	Number int     `json:"number" db:"number"`
-	X      float32 `json:"x" db:"x"`
-	Y      float32 `json:"y" db:"y"`
-}
-
 func GetAllTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
 	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates")
@@ -33,7 +27,7 @@ func GetAllTemplates(ctx context.Context) ([]*Template, error) {
 
 func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates WHERE createdBy=? ", userID)
+	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,16 +35,17 @@ func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
 	return templates, nil
 }
 
-func CreateTemplate(ctx context.Context, userID, createdBy uuid.UUID, name, path string) (*uuid.UUID, error) {
+func CreateTemplate(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
 	templateID := uuid.New()
-	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, name, createdBy, image) VALUES (?, ?, ?, ?) ", templateID, name, createdBy, path)
+	date := time.Now()
+	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, name, createdBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) ", templateID, name, createdBy, path, date, date)
 	if err != nil {
 		return nil, err
 	}
 	return &templateID, nil
 }
 
-func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name, image string) error {
+func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name *string, image string) error {
 	var count int
 
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM templates WHERE id=?", templateID)
@@ -62,7 +57,7 @@ func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name, image strin
 		return fmt.Errorf("存在しない宮殿です")
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=?, update_at=? WHERE id=? ", name, image, date, templateID)
+	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, templateID)
 	if err != nil {
 		return err
 	}

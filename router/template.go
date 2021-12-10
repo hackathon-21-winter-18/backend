@@ -1,22 +1,24 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
 
 type PostTemplate struct {
-	Name         string              `json:"name"`
+	Name         *string             `json:"name,omitempty"`
 	Image        string              `json:"image"`
 	TemplatePins []model.TemplatePin `json:"pins"`
-	CreatedBy    uuid.UUID           `json:"createdBy"`
+	CreatedBy    *uuid.UUID          `json:"createdBy,omitempty"`
 }
 
 type PutTemplate struct {
-	Name         string              `json:"name"`
+	Name         *string             `json:"name"`
 	Image        string              `json:"image"`
 	TemplatePins []model.TemplatePin `json:"pins"`
 }
@@ -39,7 +41,7 @@ func getTemplates(c echo.Context) error {
 			template.TemplatePins = append(template.TemplatePins, templatePin)
 		}
 
-		template.Image, err = model.EncodeTobase64(ctx, template.Image)
+		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -50,17 +52,22 @@ func getTemplates(c echo.Context) error {
 }
 
 func getMyTemplates(c echo.Context) error {
-	userID, err := uuid.Parse(c.Param("userID"))
+	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	ctx := c.Request().Context()
 	templates, err := model.GetTemplates(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, template := range templates {
@@ -73,7 +80,7 @@ func getMyTemplates(c echo.Context) error {
 			template.TemplatePins = append(template.TemplatePins, templatePin)
 		}
 
-		template.Image, err = model.EncodeTobase64(ctx, template.Image)
+		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -85,15 +92,19 @@ func getMyTemplates(c echo.Context) error {
 
 func postTemplate(c echo.Context) error {
 	var req PostTemplate
-	userID, err := uuid.Parse(c.Param("userID"))
+	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return errSessionNotFound(err)
 	}
-
 	if err := c.Bind(&req); err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return errBind(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	ctx := c.Request().Context()
@@ -102,8 +113,19 @@ func postTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	for _, templatePin := range req.TemplatePins {
+		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
+		}
+	}
 
 	templateID, err := model.CreateTemplate(ctx, userID, req.CreatedBy, req.Name, path)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -116,12 +138,6 @@ func postTemplate(c echo.Context) error {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-	}
-
-	err = model.DecodeToImageAndSave(ctx, req.Image, path)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	return echo.NewHTTPError(http.StatusOK)
