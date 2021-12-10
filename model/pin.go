@@ -57,7 +57,7 @@ func GetTemplatePins(ctx context.Context, TemplateID uuid.UUID) ([]TemplatePin, 
 	return templatePins, nil
 }
 
-func CreateTemplatePin(ctx context.Context, number int, templateID uuid.UUID, x, y float32) error {
+func CreateTemplatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32) error {
 	_, err := db.ExecContext(ctx, "INSERT INTO templatepins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
 	if err != nil {
 		return err
