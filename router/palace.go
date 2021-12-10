@@ -17,7 +17,7 @@ type PostPalace struct {
 	CreatedBy   *uuid.UUID         `json:"createdBy,omitempty"`
 }
 type PutPalace struct {
-	Name        string             `json:"name"`
+	Name        *string            `json:"name"`
 	Image       string             `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 }
@@ -64,7 +64,7 @@ func getMyPalaces(c echo.Context) error {
 			palace.EmbededPins = append(palace.EmbededPins, embededPin)
 		}
 
-		palace.Image, err = model.EncodeTobase64(ctx, palace.Image)
+		palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -158,18 +158,14 @@ func putPalace(c echo.Context) error {
 	ctx := c.Request().Context()
 	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
 	if err != nil {
+		c.Logger().Error(err)
 		generateEchoError(err)
 	}
 
 	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-	err = model.RemoveImage(ctx, unupdatedPath)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	path, err := model.CreatePathName(ctx, req.Image)
@@ -178,30 +174,40 @@ func putPalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
+	for _, embededPin := range req.EmbededPins {
+		if embededPin.Number == nil || embededPin.X == nil || embededPin.Y == nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
+		}
+	}
+
 	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	err = model.RemoveImage(ctx, unupdatedPath)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	err = model.DecodeToImageAndSave(ctx, req.Image, path)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	err = model.DeleteEmbededPins(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, updatedEmbededPin := range req.EmbededPins {
 		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Do)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-	}
-
-	err = model.DecodeToImageAndSave(ctx, req.Image, path)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	return echo.NewHTTPError(http.StatusOK)

@@ -19,7 +19,7 @@ type EmbededPin struct {
 	Do     string   `json:"do" db:"do"`
 }
 
-func EncodeTobase64(ctx context.Context, path string) (string, error) {
+func EncodeToBase64(ctx context.Context, path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -41,10 +41,10 @@ func EncodeTobase64(ctx context.Context, path string) (string, error) {
 func DecodeToImageAndSave(ctx context.Context, encoded, path string) error {
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to decode image")
 	}
 
-	file, err := os.Create(path) //既にあってもエラー返さない
+	file, err := os.Create(path) //TODO 既にあってもエラー返さない
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func CreatePathName(ctx context.Context, base64 string) (string, error) { // go 
 	b := make([]byte, 25)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	var result string

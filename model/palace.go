@@ -43,7 +43,7 @@ func CreatePalace(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, n
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name, image string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image string) error {
 	var count int
 
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
