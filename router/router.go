@@ -50,8 +50,6 @@ func SetRouting(sess sess.Session) {
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
 		}
-
-
 	}
 
 	err := e.Start(":8080")

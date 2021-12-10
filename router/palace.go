@@ -81,15 +81,14 @@ func postPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return errSessionNotFound(err)
 	}
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return errBind(err)
+	}
 	userID, err := uuid.Parse(sess.Values["userID"].(string))
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
-	if err := c.Bind(&req); err != nil {
-		c.Logger().Error(err)
-		return errBind(err)
 	}
 
 	ctx := c.Request().Context()
@@ -98,7 +97,6 @@ func postPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	for _, embededPin := range req.EmbededPins {
 		if embededPin.Number == nil || embededPin.X == nil || embededPin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
@@ -110,7 +108,6 @@ func postPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
@@ -138,12 +135,10 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	if err := c.Bind(&req); err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
@@ -161,29 +156,26 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		generateEchoError(err)
 	}
-
-	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-
 	path, err := model.CreatePathName(ctx, req.Image)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	for _, embededPin := range req.EmbededPins {
 		if embededPin.Number == nil || embededPin.X == nil || embededPin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
 
-	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	if err != nil {
+		c.Logger().Error(err)
+		return generateEchoError(err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
@@ -201,7 +193,6 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
 	for _, updatedEmbededPin := range req.EmbededPins {
 		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Do)
 		if err != nil {
@@ -219,7 +210,6 @@ func deletePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
@@ -243,13 +233,11 @@ func deletePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
 	err = model.DeletePalace(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)

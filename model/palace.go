@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,14 +44,13 @@ func CreatePalace(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, n
 
 func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image string) error {
 	var count int
-
+	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
 	if err != nil {
 		return err
 	}
 	if count == 0 {
-		// TODO badrequestは返せてるけどメッセージはいってない
-		return fmt.Errorf("存在しない宮殿です")
+		return ErrNotFound
 	}
 	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=? WHERE id=? ", name, image, palaceID)
 	if err != nil {
