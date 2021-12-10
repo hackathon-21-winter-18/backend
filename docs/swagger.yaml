@@ -92,7 +92,7 @@ paths:
                 $ref: "#/components/schemas/SharedPalaces"
         # 400:
         #   description: 不正なリクエスト
-  /palaces/me/{userID}:
+  /palaces/me:
     get:
       tags:
         - palaces
@@ -184,7 +184,7 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/SharedTemplates"
-  /templates/me/{userID}:
+  /templates/me:
     get:
       tags:
         - templates
