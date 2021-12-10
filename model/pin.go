@@ -6,6 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type EmbededPin struct {
+	Number *int     `json:"number,omitempty" db:"number"`
+	X      *float32 `json:"x,omitempty" db:"x"`
+	Y      *float32 `json:"y,omitempty" db:"y"`
+	Word   string   `json:"word" db:"word"`
+	Place  string   `json:"place" db:"place"`
+	Do     string   `json:"do" db:"do"`
+}
+
+type TemplatePin struct {
+	Number *int     `json:"number,omitempty" db:"number"`
+	X      *float32 `json:"x" db:"x"`
+	Y      *float32 `json:"y" db:"y"`
+}
+
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
 	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, do FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
