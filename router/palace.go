@@ -220,19 +220,37 @@ func deletePalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
 	ctx := c.Request().Context()
+	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
+	if err != nil {
+		c.Logger().Error(err)
+		generateEchoError(err)
+	}
+
 	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.RemoveImage(ctx, unupdatedPath)
+
+	err = model.DeletePalace(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err = model.DeletePalace(ctx, palaceID)
+	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
