@@ -48,13 +48,17 @@ CREATE TABLE IF NOT EXISTS `templates` (
   `firstshared` boolean DEFAULT False,
   `firstshared_at` datetime NULL,
   `shared_at` datetime NULL,
-  `update_at` datetime NULL,
-  PRIMARY KEY (`id`)
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`createdBy`) REFERENCES users(`id`),
+  FOREIGN KEY (`heldBy`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `templatepins` (
   `number` int NOT NULL,
   `x` decimal(10, 2) NOT NULL, 
   `y` decimal(10, 2) NOT NULL,
-  `templateID` char(36) NOT NULL
+  `templateID` char(36) NOT NULL,
+  FOREIGN KEY (`templateID`) REFERENCES templates(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
