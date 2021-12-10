@@ -14,5 +14,4 @@ cname:
 
 use_mariadb: true
 
-branch:
-  nginx:
+
