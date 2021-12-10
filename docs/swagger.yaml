@@ -28,6 +28,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: 不正なリクエスト
   /oauth/login:
     post:
       tags:
@@ -45,6 +47,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: 不正なリクエスト
+        403:
+          description: パスワードが不一致
+        404:
+          description: ユーザーが見つからない
   /oauth/logout:
     post:
       tags:
@@ -64,6 +72,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Me"
+        404:
+          description: sessionが見つからない
   /palaces:
     get:
       tags:
@@ -80,7 +90,9 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/SharedPalaces"
-  /palaces/me/{userID}:
+        # 400:
+        #   description: 不正なリクエスト
+  /palaces/me:
     get:
       tags:
         - palaces
@@ -96,6 +108,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Palaces"
+        400:
+          description: 不正なリクエスト
     post:
       tags:
         - palaces
@@ -108,6 +122,8 @@ paths:
       responses:
         200:
           description: OK
+        400:
+          description: 不正なリクエスト
   /palaces/{palaceID}:
   #   get: 
   #     tags:
@@ -168,7 +184,7 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/SharedTemplates"
-  /templates/me/{userID}:
+  /templates/me:
     get:
       tags:
         - templates
@@ -337,7 +353,9 @@ components:
           type: number
         word:
           type: string
-        memo: 
+        place: 
+          type: string
+        do: 
           type: string
     Templates:
       type: array
