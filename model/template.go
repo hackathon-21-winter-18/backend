@@ -38,7 +38,7 @@ func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
 func CreateTemplate(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
 	templateID := uuid.New()
 	date := time.Now()
-	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, name, createdBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) ", templateID, name, createdBy, path, date, date)
+	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ", templateID, name, createdBy, userID, path, date, date)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +106,20 @@ func ShareTemplate(ctx context.Context, templateID uuid.UUID, share bool) error 
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func CheckTemplateHeldBy(ctx context.Context, userID, templateID uuid.UUID) error {
+	var heldBy heldBy
+	err := db.GetContext(ctx, &heldBy, "SELECT heldBy FROM templates WHERE id=? ", templateID)
+	if err != nil {
+		return err
+	}
+
+	if heldBy.heldBy != userID {
+		return ErrUnauthorized
 	}
 
 	return nil

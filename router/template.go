@@ -62,6 +62,7 @@ func getMyTemplates(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+	fmt.Println(userID)
 
 	ctx := c.Request().Context()
 	templates, err := model.GetTemplates(ctx, userID)
@@ -155,9 +156,39 @@ func putTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
 	ctx := c.Request().Context()
+	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		generateEchoError(err)
+	}
+	path, err := model.CreatePathName(ctx, req.Image)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	for _, templatePin := range req.TemplatePins {
+		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
+		}
+	}
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -168,13 +199,7 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	path, err := model.CreatePathName(ctx, req.Image)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-
-	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
+	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -189,14 +214,8 @@ func putTemplate(c echo.Context) error {
 		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-	}
-
-	err = model.DecodeToImageAndSave(ctx, req.Image, path)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	return echo.NewHTTPError(http.StatusOK)
@@ -209,30 +228,38 @@ func deleteTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 	ctx := c.Request().Context()
+	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		generateEchoError(err)
+	}
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.RemoveImage(ctx, unupdatedPath)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-
 	err = model.DeleteTemplate(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err = model.DeleteTemplatePins(ctx, templateID)
+	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	return echo.NewHTTPError(http.StatusOK)
 }
 
@@ -252,7 +279,7 @@ func shareTemplate(c echo.Context) error {
 	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return echo.NewHTTPError(http.StatusOK)
