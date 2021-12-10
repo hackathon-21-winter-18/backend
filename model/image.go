@@ -6,9 +6,20 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+
+	"github.com/google/uuid"
 )
 
-func EncodeTobase64(ctx context.Context, path string) (string, error) {
+type EmbededPin struct {
+	Number *int     `json:"number,omitempty" db:"number"`
+	X      *float32 `json:"x,omitempty" db:"x"`
+	Y      *float32 `json:"y,omitempty" db:"y"`
+	Word   string   `json:"word" db:"word"`
+	Place  string   `json:"place" db:"place"`
+	Do     string   `json:"do" db:"do"`
+}
+
+func EncodeToBase64(ctx context.Context, path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -30,10 +41,10 @@ func EncodeTobase64(ctx context.Context, path string) (string, error) {
 func DecodeToImageAndSave(ctx context.Context, encoded, path string) error {
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to decode image")
 	}
 
-	file, err := os.Create(path) //既にあってもエラー返さない
+	file, err := os.Create(path) //TODO 既にあってもエラー返さない
 	if err != nil {
 		return err
 	}
@@ -43,13 +54,22 @@ func DecodeToImageAndSave(ctx context.Context, encoded, path string) error {
 	return nil
 }
 
+func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error) {
+	var path string
+	err := db.GetContext(ctx, &path, "SELECT image FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 func CreatePathName(ctx context.Context, base64 string) (string, error) { // go run main.goをやりなおしても値は変わらない
 	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 	b := make([]byte, 25)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	var result string

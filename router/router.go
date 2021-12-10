@@ -17,7 +17,12 @@ func SetRouting(sess sess.Session) {
 	e := echo.New()
 	e.Use(session.Middleware(sess.Store()))
 	e.Use(middleware.Logger())
-	e.Use(middleware.CORS())
+	
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"http://localhost:3000"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
+	}))
 
 	api := e.Group("/api")
 	{
@@ -39,14 +44,12 @@ func SetRouting(sess sess.Session) {
 		apiPalaces := api.Group("/palaces")
 		{
 			apiPalaces.GET("/palaces", getPalaces, userAuthMiddleware)
-			apiPalaces.GET("/me/:userID", getMyPalaces, userAuthMiddleware)
-			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
+			apiPalaces.GET("/me", getMyPalaces, userAuthMiddleware)
+			apiPalaces.POST("/me", postPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
-			apiPalaces.POST("/share/:palaceID", sharePalace, userAuthMiddleware)
+			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
 		}
-
-
 	}
 
 	err := e.Start(":8080")

@@ -2,7 +2,7 @@ package model
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -14,21 +14,17 @@ type Palace struct {
 	EmbededPins []EmbededPin `json:"embededPins"`
 }
 
-type EmbededPin struct {
-	Number int     `json:"number" db:"number"`
-	X      float32 `json:"x" db:"x"`
-	Y      float32 `json:"y" db:"y"`
-	Word   string  `json:"word" db:"word"`
-	Memo   string  `json:"memo" db:"memo"`
+type firstShared struct {
+	FirstShared bool `db:"firstshared"`
 }
 
-type palaceImagePath struct {
-	path string
+type heldBy struct {
+	heldBy uuid.UUID `db:"heldBy"`
 }
 
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE createdBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -36,25 +32,25 @@ func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	return palaces, nil
 }
 
-func CreatePalace(ctx context.Context, userID, createdBy uuid.UUID, name, path string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, heldBy, image) VALUES (?, ?, ?, ?, ?) ", palaceID, name, createdBy, userID, path)
+	date := time.Now()
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ", palaceID, name, createdBy, userID, path, date, date)
 	if err != nil {
 		return nil, err
 	}
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name, image string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image string) error {
 	var count int
-
+	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
 	if err != nil {
 		return err
 	}
 	if count == 0 {
-		// TODO badrequestは返せてるけどメッセージはいってない
-		return fmt.Errorf("存在しない宮殿です")
+		return ErrNotFound
 	}
 	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=? WHERE id=? ", name, image, palaceID)
 	if err != nil {
@@ -71,11 +67,46 @@ func DeletePalace(ctx context.Context, palaceID uuid.UUID) error {
 	return nil
 }
 
-func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error) {
-	var path string
-	err := db.GetContext(ctx, &path, "SELECT image FROM palaces WHERE id=? ", palaceID)
-	if err != nil {
-		return "", err
+func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
+	var firstShared firstShared
+	if share {
+		err := db.GetContext(ctx, &firstShared, "SELECT firstshared FROM palaces WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
+		if firstShared.FirstShared {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=?, shared_at=? WHERE id=? ", share, date, palaceID)
+			if err != nil {
+				return err
+			}
+		} else {
+			date := time.Now()
+			_, err := db.ExecContext(ctx, "UPDATE palaces SET share=true, firstshared=true, firstshared_at=?, shared_at=? WHERE id=? ", date, date, palaceID)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		_, err := db.ExecContext(ctx, "UPDATE palaces SET share=false WHERE id=? ", palaceID)
+		if err != nil {
+			return err
+		}
 	}
-	return path, nil
+
+	return nil
+}
+
+func CheckPalaceHeldBy(ctx context.Context, userID, palaceID uuid.UUID) error {
+	var heldBy heldBy
+	err := db.GetContext(ctx, &heldBy, "SELECT heldBy FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return err
+	}
+
+	if heldBy.heldBy != userID {
+		return ErrUnauthorized
+	}
+
+	return nil
 }

@@ -16,14 +16,24 @@ CREATE TABLE IF NOT EXISTS `palaces` (
   `createdBy` char(36) NOT NULL,
   `image` varchar(40) NOT NULL,
   `heldBy` char(36) NOT NULL,
-  PRIMARY KEY (`id`)
+  `share` boolean DEFAULT False,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NUll,  
+  `firstshared` boolean DEFAULT False,
+  `firstshared_at` datetime NULL,
+  `shared_at` datetime NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`createdBy`) REFERENCES users(`id`),
+  FOREIGN KEY (`heldBy`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `embededpins` (
   `number` int NOT NULL,
   `x` decimal(10, 2) NOT NULL, 
   `y` decimal(10, 2) NOT NULL,
-  `word` varchar(15) NOT NULL,
-  `memo` varchar(30) NOT NULL,
-  `palaceID` char(36) NOT NULL
+  `word` varchar(15) NULL,
+  `place` varchar(15) NULL,
+  `do` varchar(15) NULL,
+  `palaceID` char(36) NOT NULL,
+  FOREIGN KEY (`palaceID`) REFERENCES palaces(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

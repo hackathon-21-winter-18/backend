@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
@@ -30,7 +29,7 @@ func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, err
 	}
 
 	if count > 0 {
-		return nil, c.String(http.StatusConflict, "ユーザーが既に存在しています")
+		return nil, fmt.Errorf("There is a user with the same name")
 	}
 
 	userID := uuid.New()
@@ -53,17 +52,15 @@ func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	var user User
 	err := db.Get(&user, "SELECT * FROM users WHERE name=?", name)
 	if err != nil {
-		return nil, c.String(http.StatusBadRequest, fmt.Sprintf("db error: %v", err))
+		return nil, ErrNotFound
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(password))
 	if err != nil {
-		//TODO
-		// if err == bcrypt.ErrMismatchedHashAndPassword {
-		// 	return c.NoContent(http.StatusForbidden)
-		// } else {
-		// 	return c.NoContent(http.StatusInternalServerError)
-		// }
-		return nil, err
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return nil, ErrForbidden
+		} else {
+			return nil, err
+		}
 	}
 
 	sess, err := session.Get("sessions", c)
