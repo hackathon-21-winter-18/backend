@@ -15,6 +15,8 @@ func generateEchoError(err error) error {
 		return echo.NewHTTPError(http.StatusNotFound, "Not Found")
 	} else if errors.Is(err, model.ErrForbidden) {
 		return echo.NewHTTPError(http.StatusForbidden, "Forbidden")
+	} else if errors.Is(err, model.ErrUnauthorized) {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 	} else {
 		log.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Internal Server Error")

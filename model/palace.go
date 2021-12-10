@@ -19,6 +19,10 @@ type firstShared struct {
 	FirstShared bool `db:"firstshared"`
 }
 
+type heldBy struct {
+	heldBy uuid.UUID `db:"heldBy"`
+}
+
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE heldBy=? ", userID)
@@ -95,6 +99,16 @@ func SharePalace(ctx context.Context, palaceID uuid.UUID, share bool) error {
 	return nil
 }
 
-func Location() *time.Location {
-	return time.FixedZone("Asia/Tokyo", 9*60*60)
+func CheckPalaceHeldBy(ctx context.Context, userID, palaceID uuid.UUID) error {
+	var heldBy heldBy
+	err := db.GetContext(ctx, &heldBy, "SELECT heldBy FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return err
+	}
+
+	if heldBy.heldBy != userID {
+		return ErrUnauthorized
+	}
+
+	return nil
 }

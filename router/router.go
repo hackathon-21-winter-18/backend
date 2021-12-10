@@ -44,8 +44,8 @@ func SetRouting(sess sess.Session) {
 		apiPalaces := api.Group("/palaces")
 		{
 			apiPalaces.GET("/palaces", getPalaces, userAuthMiddleware)
-			apiPalaces.GET("/me/:userID", getMyPalaces, userAuthMiddleware)
-			apiPalaces.POST("/me/:userID", postPalace, userAuthMiddleware)
+			apiPalaces.GET("/me", getMyPalaces, userAuthMiddleware)
+			apiPalaces.POST("/me", postPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
