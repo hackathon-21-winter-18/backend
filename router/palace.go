@@ -9,10 +9,10 @@ import (
 )
 
 type PostPalace struct {
-	Name        string             `json:"name"`
+	Name        *string             `json:"name,omitempty"`
 	Image       string             `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
-	CreatedBy   uuid.UUID          `json:"createdBy"`
+	CreatedBy   *uuid.UUID          `json:"createdBy,omitempty"`
 }
 type PutPalace struct {
 	Name        string             `json:"name"`
@@ -51,7 +51,7 @@ func getMyPalaces(c echo.Context) error {
 		embededPins, err := model.GetEmbededPins(ctx, palace.ID)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		for _, embededPin := range embededPins {
 			palace.EmbededPins = append(palace.EmbededPins, embededPin)
@@ -60,7 +60,7 @@ func getMyPalaces(c echo.Context) error {
 		palace.Image, err = model.EncodeTobase64(ctx, palace.Image)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 	}
 
@@ -77,7 +77,7 @@ func postPalace(c echo.Context) error {
 
 	if err := c.Bind(&req); err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return errBind(err)
 	}
 
 	ctx := c.Request().Context()
@@ -156,6 +156,7 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	
 	for _, updatedEmbededPin := range req.EmbededPins {
 		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Do)
 		if err != nil {
@@ -184,7 +185,7 @@ func deletePalace(c echo.Context) error {
 	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
@@ -193,12 +194,6 @@ func deletePalace(c echo.Context) error {
 	}
 
 	err = model.DeletePalace(ctx, palaceID)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-
-	err = model.DeleteEmbededPins(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)

@@ -79,6 +79,7 @@ func postLogin(c echo.Context) error {
 func postLogout(c echo.Context) error {
 	err := s.RevokeSession(c)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
@@ -95,6 +96,7 @@ func getWhoamI(c echo.Context) error {
 	ctx := c.Request().Context()
 	name, err := model.GetMe(ctx, userID)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 

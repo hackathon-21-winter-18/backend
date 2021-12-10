@@ -15,19 +15,6 @@ type Palace struct {
 	EmbededPins []EmbededPin `json:"embededPins"`
 }
 
-type EmbededPin struct {
-	Number int     `json:"number" db:"number"`
-	X      float32 `json:"x" db:"x"`
-	Y      float32 `json:"y" db:"y"`
-	Word   string  `json:"word" db:"word"`
-	Place  string  `json:"place" db:"place"`
-	Do     string  `json:"do" db:"do"`
-}
-
-type palaceImagePath struct {
-	path string
-}
-
 type firstShared struct {
 	FirstShared bool `db:"firstshared"`
 }
@@ -42,9 +29,10 @@ func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	return palaces, nil
 }
 
-func CreatePalace(ctx context.Context, userID, createdBy uuid.UUID, name, path string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, heldBy, image) VALUES (?, ?, ?, ?, ?) ", palaceID, name, createdBy, userID, path)
+	date := time.Now()
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ", palaceID, name, createdBy, userID, path, date, date)
 	if err != nil {
 		return nil, err
 	}
