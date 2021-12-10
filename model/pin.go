@@ -16,7 +16,7 @@ func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, erro
 	return embededPins, nil
 }
 
-func CreateEmbededPin(ctx context.Context, number int, palaceID uuid.UUID, x, y float32, word, place, do string) error {
+func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, do string) error {
 	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, do, palaceID) VALUES (?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, do, palaceID)
 	if err != nil {
 		return err

@@ -31,7 +31,7 @@ func postSignUp(c echo.Context) error {
 	c.Bind(&req)
 
 	if req.Password == "" || req.Name == "" {
-		return c.String(http.StatusBadRequest, "項目が空です")
+		return c.String(http.StatusBadRequest, "invalid request")
 	}
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -42,7 +42,6 @@ func postSignUp(c echo.Context) error {
 
 	userID, err := model.PostSignUp(c, req.Name, hashedPass)
 	if err != nil {
-		//TODO
 		c.Logger().Error(err)
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
 	}
@@ -60,14 +59,13 @@ func postLogin(c echo.Context) error {
 	c.Bind(&req)
 
 	if req.Password == "" || req.Name == "" {
-		return c.String(http.StatusBadRequest, "項目が空です")
+		return c.String(http.StatusBadRequest, "invalid request")
 	}
 
 	userID, err := model.PostLogin(c, req.Name, req.Password)
 	if err != nil {
-		//TODO エラーがdbなのかhashかなのか
 		c.Logger().Error(err)
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("error: %v", err))
+		return generateEchoError(err)
 	}
 
 	res := LoginResponse{
@@ -81,7 +79,8 @@ func postLogin(c echo.Context) error {
 func postLogout(c echo.Context) error {
 	err := s.RevokeSession(c)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("failed to revoke session: %w", err).Error())
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	return echo.NewHTTPError(http.StatusOK)
@@ -97,11 +96,12 @@ func getWhoamI(c echo.Context) error {
 	ctx := c.Request().Context()
 	name, err := model.GetMe(ctx, userID)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return echo.NewHTTPError(http.StatusOK, Me{
-		ID: userID,
+		ID:   userID,
 		Name: name,
 	})
 }
