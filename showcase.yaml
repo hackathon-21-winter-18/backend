@@ -1,16 +1,13 @@
 type: runtime
 
-# startup: |
-#   go mod download
-#   go build -o main
+startup: |
+  go mod download
+  go build -o main
 # entrypoint: ./main
 
 http_proxy: 8080
 
 https: hard
-
-cname:
-  palamo.trap
 
 use_mariadb: true
 
