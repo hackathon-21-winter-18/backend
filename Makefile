@@ -16,7 +16,7 @@ logs:
 
 .PHONY: db-dev
 db-dev:
-	@docker exec -it backend_db_1 bash
+	@docker exec -it hack_mysql bash
 
 .PHONY: app-dev
 app-dev:	

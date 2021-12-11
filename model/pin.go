@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"sort"
+	"strconv"
 
 	"github.com/google/uuid"
 )
@@ -19,6 +21,50 @@ type TemplatePin struct {
 	Number *int     `json:"number,omitempty" db:"number"`
 	X      *float32 `json:"x" db:"x"`
 	Y      *float32 `json:"y" db:"y"`
+}
+
+func ExtractFromPalacesBasedOnEmbededPins(palaces []*Palace, max, min string) []*Palace {
+	sort.Slice(palaces, func(i, j int) bool {
+		pini := len(palaces[i].EmbededPins)
+		pinj := len(palaces[j].EmbededPins)
+		return pini < pinj
+	})
+	minptr := 0
+	maxptr := len(palaces)
+	for i, v := range palaces {
+		pin := len(v.EmbededPins)
+		if minpin, err := strconv.Atoi(min); err == nil && pin < minpin {
+			minptr = i + 1
+		}
+		if maxpin, err := strconv.Atoi(max); err == nil && pin > maxpin {
+			maxptr = i
+			break
+		}
+	}
+	palaces = palaces[minptr:maxptr]
+	return palaces
+}
+
+func ExtractFromTemplatesBasedOnTemplatePins(templates []*Template, max, min string) []*Template {
+	sort.Slice(templates, func(i, j int) bool {
+		pini := len(templates[i].TemplatePins)
+		pinj := len(templates[j].TemplatePins)
+		return pini < pinj
+	})
+	minptr := 0
+	maxptr := len(templates)
+	for i, v := range templates {
+		pin := len(v.TemplatePins)
+		if minpin, err := strconv.Atoi(min); err == nil && pin < minpin {
+			minptr = i + 1
+		}
+		if maxpin, err := strconv.Atoi(max); err == nil && pin > maxpin {
+			maxptr = i
+			break
+		}
+	}
+	templates = templates[minptr:maxptr]
+	return templates
 }
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {

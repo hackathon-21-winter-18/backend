@@ -5,6 +5,7 @@ services:
     volumes:
       - ./mysql/init:/docker-entrypoint-initdb.d 
       # - ./mysql/data:/var/lib/mysql
+    container_name: hack_mysql
     image: hack_mysql
     command: bash -c 'usermod -o -u $LINUX_MYSQL_UID mysql; groupmod -o -g $LINUX_MYSQL_GID mysql; chown -R mysql:root /var/run/mysqld/ /var/log/mysql/ /var/lib/mysql/; /entrypoint.sh mysqld --user=mysql --console'
     environment:
@@ -15,19 +16,19 @@ services:
     ports:
       - "3306:3306"
 
-  # phpmyadmin:
-  #   image: phpmyadmin/phpmyadmin
-  #   environment:
-  #     - PMA_ARBITRARY=1
-  #     - PMA_HOST=db
-  #     - PMA_USER=root
-  #     - PMA_PASSWORD=password
-  #   links:
-  #     - db
-  #   ports:
-  #     - 4040:80
-  #   volumes:
-  #     - ./phpmyadmin/sessions:/sessions
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=db
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    links:
+      - db
+    ports:
+      - 4040:80
+    volumes:
+      - ./phpmyadmin/sessions:/sessions
   
   app: # service名
     build: . # ビルドに使用するDockerfileがあるディレクトリ指定
