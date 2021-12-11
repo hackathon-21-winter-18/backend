@@ -6,6 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type EmbededPin struct {
+	Number *int     `json:"number,omitempty" db:"number"`
+	X      *float32 `json:"x,omitempty" db:"x"`
+	Y      *float32 `json:"y,omitempty" db:"y"`
+	Word   string   `json:"word" db:"word"`
+	Place  string   `json:"place" db:"place"`
+	Do     string   `json:"do" db:"do"`
+}
+
+type TemplatePin struct {
+	Number *int     `json:"number,omitempty" db:"number"`
+	X      *float32 `json:"x" db:"x"`
+	Y      *float32 `json:"y" db:"y"`
+}
+
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
 	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, do FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
@@ -26,6 +41,32 @@ func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y
 
 func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 	_, err := db.ExecContext(ctx, "DELETE FROM embededpins WHERE palaceID=? ", palaceID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetTemplatePins(ctx context.Context, TemplateID uuid.UUID) ([]TemplatePin, error) {
+	var templatePins []TemplatePin
+	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y FROM templatepins WHERE templateID=? ORDER BY number ASC ", TemplateID)
+	if err != nil {
+		return nil, err
+	}
+
+	return templatePins, nil
+}
+
+func CreateTemplatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO templatepins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteTemplatePins(ctx context.Context, templateID uuid.UUID) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM templatepins WHERE templateID=? ", templateID)
 	if err != nil {
 		return err
 	}

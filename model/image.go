@@ -10,15 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type EmbededPin struct {
-	Number *int     `json:"number,omitempty" db:"number"`
-	X      *float32 `json:"x,omitempty" db:"x"`
-	Y      *float32 `json:"y,omitempty" db:"y"`
-	Word   string   `json:"word" db:"word"`
-	Place  string   `json:"place" db:"place"`
-	Do     string   `json:"do" db:"do"`
-}
-
 func EncodeToBase64(ctx context.Context, path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {

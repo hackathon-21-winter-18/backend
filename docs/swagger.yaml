@@ -28,6 +28,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: 不正なリクエスト
   /oauth/login:
     post:
       tags:
@@ -45,6 +47,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: 不正なリクエスト
+        403:
+          description: パスワードが不一致
+        404:
+          description: ユーザーが見つからない
   /oauth/logout:
     post:
       tags:
@@ -64,10 +72,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Me"
+        404:
+          description: sessionが見つからない
   /palaces:
     get:
       tags:
         - palaces
+      parameters:
+        - $ref: "#/components/parameters/sortQuery"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 公開されているpalaceの一覧を取得
       responses:
         200:
@@ -76,10 +90,16 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/SharedPalaces"
-  /palaces/me/{userID}:
+        # 400:
+        #   description: 不正なリクエスト
+  /palaces/me:
     get:
       tags:
         - palaces
+      parameters:
+        - $ref: "#/components/parameters/sortQueryMe"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 自分のpalaceの一覧を取得
       responses:
         200: 
@@ -88,6 +108,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Palaces"
+        400:
+          description: 不正なリクエスト
     post:
       tags:
         - palaces
@@ -100,6 +122,8 @@ paths:
       responses:
         200:
           description: OK
+        400:
+          description: 不正なリクエスト
   /palaces/{palaceID}:
   #   get: 
   #     tags:
@@ -132,7 +156,7 @@ paths:
         200:
           description: OK
   /palaces/share/{palaceID}:
-    post:
+    put:
       tags: 
         - palaces
       summary: 公開非公開を設定
@@ -148,6 +172,10 @@ paths:
     get:
       tags:
         - templates
+      parameters:
+        - $ref: "#/components/parameters/sortQuery"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 公開されているtemplateの一覧を取得
       responses:
         200:
@@ -156,10 +184,14 @@ paths:
             application/json:
               schema: 
                 $ref: "#/components/schemas/SharedTemplates"
-  /templates/me/{userID}:
+  /templates/me:
     get:
       tags:
         - templates
+      parameters:
+        - $ref: "#/components/parameters/sortQueryMe"
+        - $ref: "#/components/parameters/maxPins"
+        - $ref: "#/components/parameters/minPins"
       summary: 自分が保持しているtemplateを取得
       responses:
         200:
@@ -212,7 +244,7 @@ paths:
         200: 
           description: OK
   /templates/share/{templateID}:
-    post:
+    put:
       tags: 
         - templates
       summary: 公開非公開を設定
@@ -225,6 +257,35 @@ paths:
         200:
           description: OK
 components:
+  parameters:
+    sortQuery:
+      name: sort
+      description: 並び順 (最初の公開日時が新しい "first_shared_at", 公開日時が新しい "shared_at", 保存したユーザーが多い順 "savedcount")
+      required: false
+      in: query
+      schema:
+        type: string
+    sortQueryMe:
+      name: sort
+      description: 並び順 (更新日時が新しい "updated_at", 更新日時が古い "-updated_at")
+      required: false
+      in: query
+      schema:
+        type: string
+    maxPins:
+      name: maxpins
+      description: ピンの数の最大値
+      required: false
+      in: query
+      schema:
+        type: string
+    minPins:
+      name: minpins
+      description: ピンの数の最小値
+      required: false
+      in: query
+      schema:
+        type: string
   schemas:
     LoginRequest:
       type: object
@@ -292,7 +353,9 @@ components:
           type: number
         word:
           type: string
-        memo: 
+        place: 
+          type: string
+        do: 
           type: string
     Templates:
       type: array
@@ -424,9 +487,6 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        pinsCount:
-          type: integer
-          description: ピンの個数
         createrName:
           type: string
           description: 作成者のユーザー名
@@ -455,9 +515,6 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        pinsCount:
-          type: integer
-          description: ピンの個数
         createrName:
           type: string
           description: 作成者のユーザー名

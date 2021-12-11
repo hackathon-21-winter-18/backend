@@ -10,31 +10,48 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type PostPalace struct {
-	Name        *string            `json:"name,omitempty"`
-	Image       string             `json:"image"`
-	EmbededPins []model.EmbededPin `json:"embededPins"`
-	CreatedBy   *uuid.UUID         `json:"createdBy,omitempty"`
-}
-type PutPalace struct {
-	Name        *string            `json:"name"`
-	Image       string             `json:"image"`
-	EmbededPins []model.EmbededPin `json:"embededPins"`
+type PostTemplate struct {
+	Name         *string             `json:"name,omitempty"`
+	Image        string              `json:"image"`
+	TemplatePins []model.TemplatePin `json:"pins"`
+	CreatedBy    *uuid.UUID          `json:"createdBy,omitempty"`
 }
 
-type Share struct {
-	Share bool `json:"share"`
+type PutTemplate struct {
+	Name         *string             `json:"name"`
+	Image        string              `json:"image"`
+	TemplatePins []model.TemplatePin `json:"pins"`
 }
 
-type ID struct {
-	ID uuid.UUID `json:"id"`
+func getTemplates(c echo.Context) error {
+	ctx := c.Request().Context()
+	templates, err := model.GetAllTemplates(ctx)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	for _, template := range templates {
+		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		for _, templatePin := range templatePins {
+			template.TemplatePins = append(template.TemplatePins, templatePin)
+		}
+
+		template.Image, err = model.EncodeToBase64(ctx, template.Image)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+	}
+
+	return echo.NewHTTPError(http.StatusOK, templates)
 }
 
-func getPalaces(c echo.Context) error {
-	return nil
-}
-
-func getMyPalaces(c echo.Context) error {
+func getMyTemplates(c echo.Context) error {
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
@@ -47,34 +64,34 @@ func getMyPalaces(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	palaces, err := model.GetPalaces(ctx, userID)
+	templates, err := model.GetTemplates(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	for _, palace := range palaces {
-		embededPins, err := model.GetEmbededPins(ctx, palace.ID)
+	for _, template := range templates {
+		templatePins, err := model.GetTemplatePins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
-		for _, embededPin := range embededPins {
-			palace.EmbededPins = append(palace.EmbededPins, embededPin)
+		for _, templatePin := range templatePins {
+			template.TemplatePins = append(template.TemplatePins, templatePin)
 		}
 
-		palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
+		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 	}
 
-	return echo.NewHTTPError(http.StatusOK, palaces)
+	return echo.NewHTTPError(http.StatusOK, templates)
 }
 
-func postPalace(c echo.Context) error {
-	var req PostPalace
+func postTemplate(c echo.Context) error {
+	var req PostTemplate
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
@@ -96,13 +113,13 @@ func postPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, embededPin := range req.EmbededPins {
-		if embededPin.Number == nil || embededPin.X == nil || embededPin.Y == nil {
+	for _, templatePin := range req.TemplatePins {
+		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
 
-	palaceID, err := model.CreatePalace(ctx, userID, req.CreatedBy, req.Name, path)
+	templateID, err := model.CreateTemplate(ctx, userID, req.CreatedBy, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -113,22 +130,22 @@ func postPalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	for _, embededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Place, embededPin.Do)
+	for _, templatePin := range req.TemplatePins {
+		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusBadRequest, err)
 		}
 	}
 
-	res := ID{ID: *palaceID}
+	res := ID{ID: *templateID}
 
 	return echo.NewHTTPError(http.StatusOK, res)
 }
 
-func putPalace(c echo.Context) error {
-	var req PutPalace
-	palaceID, err := uuid.Parse(c.Param("palaceID"))
+func putTemplate(c echo.Context) error {
+	var req PutTemplate
+	templateID, err := uuid.Parse(c.Param("templateID"))
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -149,7 +166,7 @@ func putPalace(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
+	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		generateEchoError(err)
@@ -159,40 +176,40 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, embededPin := range req.EmbededPins {
-		if embededPin.Number == nil || embededPin.X == nil || embededPin.Y == nil {
+	for _, templatePin := range req.TemplatePins {
+		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
 
-	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
+	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return generateEchoError(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
-	err = model.DeleteEmbededPins(ctx, palaceID)
+	err = model.DeleteTemplatePins(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, updatedEmbededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Do)
+	for _, updatedTemplatePin := range req.TemplatePins {
+		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -202,8 +219,8 @@ func putPalace(c echo.Context) error {
 	return echo.NewHTTPError(http.StatusOK)
 }
 
-func deletePalace(c echo.Context) error {
-	palaceID, err := uuid.Parse(c.Param("palaceID"))
+func deleteTemplate(c echo.Context) error {
+	templateID, err := uuid.Parse(c.Param("templateID"))
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -220,34 +237,33 @@ func deletePalace(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
+	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		generateEchoError(err)
 	}
 
-	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
+	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.DeletePalace(ctx, palaceID)
+	err = model.DeleteTemplate(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	return echo.NewHTTPError(http.StatusOK)
 }
 
-func sharePalace(c echo.Context) error {
+func shareTemplate(c echo.Context) error {
 	var req Share
-	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	templateID, err := uuid.Parse(c.Param("templateID"))
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -258,7 +274,7 @@ func sharePalace(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = model.SharePalace(ctx, palaceID, req.Share)
+	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
