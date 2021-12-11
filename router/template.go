@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -30,7 +31,6 @@ func getTemplates(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
 	for _, template := range templates {
 		templatePins, err := model.GetTemplatePins(ctx, template.ID)
 		if err != nil {
@@ -40,12 +40,32 @@ func getTemplates(c echo.Context) error {
 		for _, templatePin := range templatePins {
 			template.TemplatePins = append(template.TemplatePins, templatePin)
 		}
-
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
+	}
+
+	// first pin sort
+	min := c.QueryParam("minpins")
+	max := c.QueryParam("maxpins")
+	if min > max {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+	templates = model.ExtractFromTemplateBasedOnTemplatePins(templates, max, min)
+	// second sort with query
+	sortmethod := c.QueryParam("sort")
+	switch sortmethod {
+	case "first_shared_at":
+		fmt.Println("first_shared_at")
+		sort.Slice(templates, func(i, j int) bool {
+			return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
+		})
+	case "shared_at":
+		sort.Slice(templates, func(i, j int) bool {
+			return templates[i].SharedAt.Before(templates[j].SharedAt)
+		})
 	}
 
 	return echo.NewHTTPError(http.StatusOK, templates)
