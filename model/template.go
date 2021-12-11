@@ -12,6 +12,7 @@ type Template struct {
 	Name         string        `json:"name" db:"name"`
 	Image        string        `json:"image" db:"image"`
 	TemplatePins []TemplatePin `json:"pins"`
+	Share        bool          `json:"share" db:"share"`
 }
 
 func GetAllTemplates(ctx context.Context) ([]*Template, error) {
@@ -26,7 +27,7 @@ func GetAllTemplates(ctx context.Context) ([]*Template, error) {
 
 func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &templates, "SELECT id, name, image, share FROM templates WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ type Palace struct {
 	Name        string       `json:"name" db:"name"`
 	Image       string       `json:"image" db:"image"`
 	EmbededPins []EmbededPin `json:"embededPins"`
+	Share       bool         `json:"share" db:"share"`
 }
 
 type firstShared struct {
@@ -24,7 +25,7 @@ type heldBy struct {
 
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, share FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
