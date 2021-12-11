@@ -105,3 +105,4 @@ func getWhoamI(c echo.Context) error {
 		Name: name,
 	})
 }
+// test

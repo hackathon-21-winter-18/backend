@@ -1,0 +1,12 @@
+type: runtime
+
+
+
+http_proxy: 8080
+
+https: hard
+
+use_mariadb: true
+
+branch:
+  main: null
