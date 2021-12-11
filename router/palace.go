@@ -23,14 +23,6 @@ type PutPalace struct {
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 }
 
-type Share struct {
-	Share bool `json:"share"`
-}
-
-type ID struct {
-	ID uuid.UUID `json:"id"`
-}
-
 func getPalaces(c echo.Context) error {
 	ctx := c.Request().Context()
 	palaces, err := model.GetSharePalaces(ctx)
@@ -151,19 +143,19 @@ func postPalace(c echo.Context) error {
 	palaceID, err := model.CreatePalace(ctx, userID, req.CreatedBy, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, embededPin := range req.EmbededPins {
 		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Place, embededPin.Do)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 	}
 
@@ -302,8 +294,23 @@ func sharePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
 	ctx := c.Request().Context()
+	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
+	if err != nil {
+		c.Logger().Error(err)
+		return generateEchoError(err)
+	}
 	err = model.SharePalace(ctx, palaceID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

@@ -17,14 +17,6 @@ type Palace struct {
 	FirstSharedAt time.Time    `db:"firstshared_at"`
 }
 
-type firstShared struct {
-	FirstShared bool `db:"firstshared"`
-}
-
-type heldBy struct {
-	heldBy uuid.UUID `db:"heldBy"`
-}
-
 func GetSharePalaces(ctx context.Context) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, shared_at, firstshared_at FROM palaces WHERE share=true")

@@ -141,19 +141,19 @@ func postTemplate(c echo.Context) error {
 	templateID, err := model.CreateTemplate(ctx, userID, req.CreatedBy, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, templatePin := range req.TemplatePins {
 		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 	}
 
@@ -291,8 +291,23 @@ func shareTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+	userID, err := uuid.Parse(sess.Values["userID"].(string))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
 	ctx := c.Request().Context()
+	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return generateEchoError(err)
+	}
 	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)
