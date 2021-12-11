@@ -1,12 +1,12 @@
 type: runtime
 
-
+startup: |
+  go mod download
+  go build -o main
+entrypoint: ./main
 
 http_proxy: 8080
 
 https: hard
 
 use_mariadb: true
-
-branch:
-  main: null
