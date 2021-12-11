@@ -198,7 +198,7 @@ func putPalace(c echo.Context) error {
 	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 	path, err := model.CreatePathName(ctx, req.Image)
 	if err != nil {
@@ -269,7 +269,7 @@ func deletePalace(c echo.Context) error {
 	err = model.CheckPalaceHeldBy(ctx, userID, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 
 	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)

@@ -65,7 +65,8 @@ func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image s
 	if count == 0 {
 		return ErrNotFound
 	}
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=? WHERE id=? ", name, image, palaceID)
+	date := time.Now()
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, palaceID)
 	if err != nil {
 		return err
 	}
