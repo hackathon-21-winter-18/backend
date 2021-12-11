@@ -2,7 +2,6 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,8 +52,7 @@ func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name *string, ima
 		return err
 	}
 	if count == 0 {
-		// TODO badrequestは返せてるけどメッセージはいってない
-		return fmt.Errorf("存在しない宮殿です")
+		return ErrNotFound
 	}
 	date := time.Now()
 	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, templateID)
