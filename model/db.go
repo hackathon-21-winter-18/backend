@@ -24,7 +24,7 @@ func InitDB() (*sqlx.DB, error) {
 
 	host := os.Getenv("MARIADB_HOSTNAME")
 	if host == "" {
-		host = "localhost"
+		host = "hack_mysql"
 	}
 
 	dbname := os.Getenv("MARIADB_DATABASE")

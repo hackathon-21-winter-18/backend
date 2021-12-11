@@ -119,7 +119,7 @@ func CheckTemplateHeldBy(ctx context.Context, userID, templateID uuid.UUID) erro
 		return err
 	}
 
-	if heldBy.heldBy != userID {
+	if heldBy.HeldBy != userID {
 		return ErrUnauthorized
 	}
 

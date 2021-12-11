@@ -110,7 +110,7 @@ func CheckPalaceHeldBy(ctx context.Context, userID, palaceID uuid.UUID) error {
 		return err
 	}
 
-	if heldBy.heldBy != userID {
+	if heldBy.HeldBy != userID {
 		return ErrUnauthorized
 	}
 

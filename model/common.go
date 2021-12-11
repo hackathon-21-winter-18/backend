@@ -7,5 +7,5 @@ type firstShared struct {
 }
 
 type heldBy struct {
-	heldBy uuid.UUID `db:"heldBy"`
+	HeldBy uuid.UUID `db:"heldBy"`
 }

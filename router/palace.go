@@ -311,6 +311,7 @@ func sharePalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return generateEchoError(err)
 	}
+	
 	err = model.SharePalace(ctx, palaceID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

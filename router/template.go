@@ -308,6 +308,7 @@ func shareTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return generateEchoError(err)
 	}
+	
 	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)
