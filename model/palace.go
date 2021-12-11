@@ -8,11 +8,13 @@ import (
 )
 
 type Palace struct {
-	ID          uuid.UUID    `json:"id" db:"id"`
-	Name        string       `json:"name" db:"name"`
-	Image       string       `json:"image" db:"image"`
-	EmbededPins []EmbededPin `json:"embededPins"`
-	Share       bool         `json:"share" db:"share"`
+	ID            uuid.UUID    `json:"id" db:"id"`
+	Name          string       `json:"name" db:"name"`
+	Image         string       `json:"image" db:"image"`
+	EmbededPins   []EmbededPin `json:"embededPins"`
+	Share         bool         `json:"share" db:"share"`
+	SharedAt      time.Time    `db:"shared_at"`
+	FirstSharedAt time.Time    `db:"firstshared_at"`
 }
 
 type firstShared struct {
@@ -25,7 +27,7 @@ type heldBy struct {
 
 func GetSharePalaces(ctx context.Context) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE share=true")
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, shared_at, firstshared_at FROM palaces WHERE share=true")
 	if err != nil {
 		return nil, err
 	}

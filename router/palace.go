@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -53,6 +54,27 @@ func getPalaces(c echo.Context) error {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
+	}
+
+	// first pin sort
+	min := c.QueryParam("minpins")
+	max := c.QueryParam("maxpins")
+	if min != "" && max != "" && min > max {
+		return echo.NewHTTPError(http.StatusBadRequest)
+	}
+	palaces = model.ExtractFromPalacesBasedOnEmbededPins(palaces, max, min)
+	// second sort with query
+	sortmethod := c.QueryParam("sort")
+	switch sortmethod {
+	case "first_shared_at":
+		fmt.Println("first_shared_at")
+		sort.Slice(palaces, func(i, j int) bool {
+			return palaces[i].FirstSharedAt.Before(palaces[j].FirstSharedAt)
+		})
+	case "shared_at":
+		sort.Slice(palaces, func(i, j int) bool {
+			return palaces[i].SharedAt.Before(palaces[j].SharedAt)
+		})
 	}
 
 	return echo.NewHTTPError(http.StatusOK, palaces)

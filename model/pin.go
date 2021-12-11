@@ -23,7 +23,29 @@ type TemplatePin struct {
 	Y      *float32 `json:"y" db:"y"`
 }
 
-func ExtractFromTemplateBasedOnTemplatePins(templates []*Template, max, min string) []*Template {
+func ExtractFromPalacesBasedOnEmbededPins(palaces []*Palace, max, min string) []*Palace {
+	sort.Slice(palaces, func(i, j int) bool {
+		pini := len(palaces[i].EmbededPins)
+		pinj := len(palaces[j].EmbededPins)
+		return pini < pinj
+	})
+	minptr := 0
+	maxptr := len(palaces)
+	for i, v := range palaces {
+		pin := len(v.EmbededPins)
+		if minpin, err := strconv.Atoi(min); err == nil && pin < minpin {
+			minptr = i + 1
+		}
+		if maxpin, err := strconv.Atoi(max); err == nil && pin > maxpin {
+			maxptr = i
+			break
+		}
+	}
+	palaces = palaces[minptr:maxptr]
+	return palaces
+}
+
+func ExtractFromTemplatesBasedOnTemplatePins(templates []*Template, max, min string) []*Template {
 	sort.Slice(templates, func(i, j int) bool {
 		pini := len(templates[i].TemplatePins)
 		pinj := len(templates[j].TemplatePins)
