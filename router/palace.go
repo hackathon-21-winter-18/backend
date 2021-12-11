@@ -26,8 +26,7 @@ type Share struct {
 	Share bool `json:"share"`
 }
 
-type P struct {
-	//TODO 多分消す
+type ID struct {
 	ID uuid.UUID `json:"id"`
 }
 
@@ -122,8 +121,7 @@ func postPalace(c echo.Context) error {
 		}
 	}
 
-	//TODO 多分resけす
-	res := P{ID: *palaceID}
+	res := ID{ID: *palaceID}
 
 	return echo.NewHTTPError(http.StatusOK, res)
 }

@@ -133,7 +133,6 @@ func postTemplate(c echo.Context) error {
 	}
 
 	for _, templatePin := range req.TemplatePins {
-		// create template pin
 		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
@@ -141,7 +140,9 @@ func postTemplate(c echo.Context) error {
 		}
 	}
 
-	return echo.NewHTTPError(http.StatusOK)
+	res := ID{ID: *templateID}
+
+	return echo.NewHTTPError(http.StatusOK, res)
 }
 
 func putTemplate(c echo.Context) error {
