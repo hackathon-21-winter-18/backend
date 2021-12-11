@@ -15,9 +15,9 @@ type Template struct {
 	Share        bool          `json:"share" db:"share"`
 }
 
-func GetAllTemplates(ctx context.Context) ([]*Template, error) {
+func GetShareTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates")
+	err := db.SelectContext(ctx, &templates, "SELECT id, name, image FROM templates WHERE share=true")
 	if err != nil {
 		return nil, err
 	}

@@ -23,6 +23,16 @@ type heldBy struct {
 	heldBy uuid.UUID `db:"heldBy"`
 }
 
+func GetSharePalaces(ctx context.Context) ([]*Palace, error) {
+	var palaces []*Palace
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image FROM palaces WHERE share=true")
+	if err != nil {
+		return nil, err
+	}
+
+	return palaces, nil
+}
+
 func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, share FROM palaces WHERE heldBy=? ", userID)

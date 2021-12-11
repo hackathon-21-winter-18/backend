@@ -25,17 +25,17 @@ type PutTemplate struct {
 
 func getTemplates(c echo.Context) error {
 	ctx := c.Request().Context()
-	templates, err := model.GetAllTemplates(ctx)
+	templates, err := model.GetShareTemplates(ctx)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, template := range templates {
 		templatePins, err := model.GetTemplatePins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		for _, templatePin := range templatePins {
 			template.TemplatePins = append(template.TemplatePins, templatePin)
@@ -44,7 +44,7 @@ func getTemplates(c echo.Context) error {
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 	}
 

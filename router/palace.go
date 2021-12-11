@@ -31,7 +31,31 @@ type ID struct {
 }
 
 func getPalaces(c echo.Context) error {
-	return nil
+	ctx := c.Request().Context()
+	palaces, err := model.GetSharePalaces(ctx)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	for _, palace := range palaces {
+		palacePins, err := model.GetEmbededPins(ctx, palace.ID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		for _, palacePin := range palacePins {
+			palace.EmbededPins = append(palace.EmbededPins, palacePin)
+		}
+
+		palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
+	return echo.NewHTTPError(http.StatusOK, palaces)
 }
 
 func getMyPalaces(c echo.Context) error {
