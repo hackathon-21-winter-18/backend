@@ -122,6 +122,11 @@ paths:
       responses:
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ID"
+
         400:
           description: 不正なリクエスト
   /palaces/{palaceID}:
@@ -212,6 +217,10 @@ paths:
       responses: 
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ID"
   /templates/{templateID}:
   #   get:
   #     tags:
@@ -340,6 +349,8 @@ components:
         # createdBy:
         #   type: string
         #   format: uuid　フロントが保持できていてpostできれば必要ない
+        share: 
+          type: boolean
     EmbededPin:
       type: object
       description: 単語とピンのペア
@@ -355,7 +366,7 @@ components:
           type: string
         place: 
           type: string
-        do: 
+        condition: 
           type: string
     Templates:
       type: array
@@ -380,6 +391,8 @@ components:
           description: ピンの配列
         # memo:
         #   type: string
+        share: 
+          type: boolean
       required:
         - id
         - name
@@ -518,3 +531,9 @@ components:
         createrName:
           type: string
           description: 作成者のユーザー名
+    ID: 
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
