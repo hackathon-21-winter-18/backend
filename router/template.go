@@ -62,7 +62,6 @@ func getMyTemplates(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	fmt.Println(userID)
 
 	ctx := c.Request().Context()
 	templates, err := model.GetTemplates(ctx, userID)
@@ -125,7 +124,6 @@ func postTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
@@ -133,7 +131,6 @@ func postTemplate(c echo.Context) error {
 	}
 
 	for _, templatePin := range req.TemplatePins {
-		// create template pin
 		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
 		if err != nil {
 			c.Logger().Error(err)
@@ -151,7 +148,6 @@ func putTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	if err := c.Bind(&req); err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
@@ -183,6 +179,7 @@ func putTemplate(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
@@ -198,7 +195,6 @@ func putTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
@@ -227,7 +223,6 @@ func deleteTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	sess, err := session.Get("sessions", c)
 	if err != nil {
 		c.Logger().Error(err)
@@ -238,12 +233,14 @@ func deleteTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
+
 	ctx := c.Request().Context()
 	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		generateEchoError(err)
 	}
+
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
@@ -254,7 +251,6 @@ func deleteTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
