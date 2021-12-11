@@ -169,7 +169,7 @@ func putTemplate(c echo.Context) error {
 	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 	path, err := model.CreatePathName(ctx, req.Image)
 	if err != nil {
@@ -240,7 +240,7 @@ func deleteTemplate(c echo.Context) error {
 	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
