@@ -74,7 +74,7 @@ func getMyTemplates(c echo.Context) error {
 		templatePins, err := model.GetTemplatePins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		for _, templatePin := range templatePins {
 			template.TemplatePins = append(template.TemplatePins, templatePin)
@@ -83,7 +83,7 @@ func getMyTemplates(c echo.Context) error {
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
 			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusBadRequest, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 	}
 
@@ -169,7 +169,7 @@ func putTemplate(c echo.Context) error {
 	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 	path, err := model.CreatePathName(ctx, req.Image)
 	if err != nil {
@@ -185,28 +185,28 @@ func putTemplate(c echo.Context) error {
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return generateEchoError(err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.DecodeToImageAndSave(ctx, req.Image, path)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	err = model.DeleteTemplatePins(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	for _, updatedTemplatePin := range req.TemplatePins {
 		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
@@ -240,7 +240,7 @@ func deleteTemplate(c echo.Context) error {
 	err = model.CheckTemplateHeldBy(ctx, userID, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		generateEchoError(err)
+		return generateEchoError(err)
 	}
 
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
@@ -251,12 +251,12 @@ func deleteTemplate(c echo.Context) error {
 	err = model.DeleteTemplate(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	err = model.RemoveImage(ctx, unupdatedPath)
 	if err != nil {
 		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return echo.NewHTTPError(http.StatusOK)
 }
