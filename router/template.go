@@ -50,15 +50,14 @@ func getTemplates(c echo.Context) error {
 	// first pin sort
 	min := c.QueryParam("minpins")
 	max := c.QueryParam("maxpins")
-	if min > max {
+	if min != "" && max != "" && min > max {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
-	templates = model.ExtractFromTemplateBasedOnTemplatePins(templates, max, min)
+	templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
 	// second sort with query
 	sortmethod := c.QueryParam("sort")
 	switch sortmethod {
 	case "first_shared_at":
-		fmt.Println("first_shared_at")
 		sort.Slice(templates, func(i, j int) bool {
 			return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
 		})
