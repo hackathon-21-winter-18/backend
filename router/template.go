@@ -25,8 +25,27 @@ type PutTemplate struct {
 }
 
 func getTemplates(c echo.Context) error {
+	// sort := c.QueryParam("sort")
+	// var err error
+	// var maxpins int
+	// if c.QueryParam("maxpins") != "" {
+	// 	maxpins, err = strconv.Atoi(c.QueryParam("maxpins"))
+	// 	if err != nil {
+	// 		c.Logger().Error(err)
+	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	// 	}
+	// }
+	// var minpins int
+	// if c.QueryParam("minpins") != "" {
+	// 	minpins, err = strconv.Atoi(c.QueryParam("minpins"))
+	// 	if err != nil {
+	// 		c.Logger().Error(err)
+	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	// 	}
+	// }
+
 	ctx := c.Request().Context()
-	templates, err := model.GetShareTemplates(ctx)
+	templates, err := model.GetTemplates(ctx)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -50,11 +69,11 @@ func getTemplates(c echo.Context) error {
 	// first pin sort
 	min := c.QueryParam("minpins")
 	max := c.QueryParam("maxpins")
-	if min != "" && max != "" && min > max {
-		return echo.NewHTTPError(http.StatusBadRequest)
-	}
+	// // if min != "" && max != "" && min > max {
+	// // 	return echo.NewHTTPError(http.StatusBadRequest)
+	// // }
 	templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
-	// second sort with query
+	// // second sort with query
 	sortmethod := c.QueryParam("sort")
 	switch sortmethod {
 	case "first_shared_at":
@@ -83,7 +102,7 @@ func getMyTemplates(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	templates, err := model.GetTemplates(ctx, userID)
+	templates, err := model.GetMyTemplates(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -308,7 +327,7 @@ func shareTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return generateEchoError(err)
 	}
-	
+
 	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

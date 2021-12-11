@@ -17,8 +17,11 @@ type Template struct {
 	FirstSharedAt time.Time     `db:"firstshared_at"`
 }
 
-func GetShareTemplates(ctx context.Context) ([]*Template, error) {
+func GetTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
+	// if sort == "" || sort == "" {
+
+	// }
 	err := db.SelectContext(ctx, &templates, "SELECT id, name, image, shared_at, firstshared_at FROM templates WHERE share=true")
 	if err != nil {
 		return nil, err
@@ -27,7 +30,7 @@ func GetShareTemplates(ctx context.Context) ([]*Template, error) {
 	return templates, nil
 }
 
-func GetTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
+func GetMyTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
 	var templates []*Template
 	err := db.SelectContext(ctx, &templates, "SELECT id, name, image, share FROM templates WHERE heldBy=? ", userID)
 	if err != nil {
