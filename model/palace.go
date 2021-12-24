@@ -167,7 +167,7 @@ func RecordSavingUser(ctx context.Context, palaceID, userID uuid.UUID) error {
 	if count > 0 {
 		return nil
 	}
-	
+
 	_, err = db.ExecContext(ctx, "INSERT INTO palace_user (palaceID, userID) VALUES (?, ?) ", palaceID, userID)
 	if err != nil {
 		return err

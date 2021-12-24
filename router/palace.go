@@ -209,11 +209,7 @@ func postPalace(c echo.Context) error {
 	}
 
 	if *req.CreatedBy != userID {
-		originalPalace, err := model.GetPalace(ctx, *req.OriginalID)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError)
-		}
-		err = model.RecordSavingUser(ctx, originalPalace.ID, userID)
+		err = model.RecordSavingUser(ctx, *req.OriginalID, userID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
