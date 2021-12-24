@@ -430,6 +430,10 @@ components:
         createdBy:
           type: string
           format: uuid
+        originalID:
+          type: string
+          format: uuid
+          description: 公開されてるものに対してのみ必要だから任意
       required:
         - id
         - name
@@ -462,6 +466,10 @@ components:
         createdBy:
           type: string
           format: uuid
+        originalID:
+          type: string
+          format: uuid
+          description: 公開されてるものに対してのみ必要だから任意
     PutPalace:
       type: object
       properties:
