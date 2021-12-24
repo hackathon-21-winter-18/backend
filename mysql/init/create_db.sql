@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 CREATE TABLE IF NOT EXISTS `palaces` (
   `id` char(36) NOT NULL UNIQUE,
+  `originalID` char(36) NOT NUll,
   `name` varchar(20) NOT NULL,
   `createdBy` char(36) NOT NULL,
   `image` varchar(40) NOT NULL,
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
 
 CREATE TABLE IF NOT EXISTS `templates` (
   `id` char(36) NOT NULL UNIQUE,
+  `originalID` char(36) NOT NUll,
   `name` varchar(20) NOT NULL,
   `createdBy` char(36) NOT NULL,
   `image` varchar(40) NOT NULL,
@@ -62,3 +64,16 @@ CREATE TABLE IF NOT EXISTS `pins` (
   `templateID` char(36) NOT NULL,
   FOREIGN KEY (`templateID`) REFERENCES templates(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `palace_user` (
+  `palaceID` char(36) NOT NUll,
+  `userID` char(36) NOT NUll
+  -- FOREIGN KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `palace_user` (
+  `palaceID` char(36) NOT NUll,
+  `userID` char(36) NOT NUll
+  -- FOREIGN KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
