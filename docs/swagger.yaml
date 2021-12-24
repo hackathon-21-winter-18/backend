@@ -351,6 +351,8 @@ components:
         #   format: uuid　フロントが保持できていてpostできれば必要ない
         share: 
           type: boolean
+        savedCount:
+          type: integer
     EmbededPin:
       type: object
       description: 単語とピンのペア
@@ -393,6 +395,8 @@ components:
         #   type: string
         share: 
           type: boolean
+        savedCount:
+          type: integer
       required:
         - id
         - name
