@@ -11,6 +11,7 @@ type Palace struct {
 	ID            uuid.UUID    `json:"id" db:"id"`
 	OriginalID    uuid.UUID    `json:"originalID" db:"originalID"`
 	Name          string       `json:"name" db:"name"`
+	CreatedBy     uuid.UUID    `json:"createdBy" db:"createdBy"`
 	Image         string       `json:"image" db:"image"`
 	EmbededPins   []EmbededPin `json:"embededPins"`
 	Share         bool         `json:"share" db:"share"`
@@ -21,7 +22,7 @@ type Palace struct {
 
 func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, image, share, shared_at, firstshared_at FROM palaces WHERE share=true")
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM palaces WHERE share=true")
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 
 func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, share FROM palaces WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, createdBy, image, share FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 
 func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	var palace Palace
-	err := db.GetContext(ctx, &palace, "SELECT id, name, image, share FROM palaces WHERE id=? ", palaceID)
+	err := db.GetContext(ctx, &palace, "SELECT id, name, createdBy, image, share FROM palaces WHERE id=? ", palaceID)
 	if err != nil {
 		return nil, err
 	}
