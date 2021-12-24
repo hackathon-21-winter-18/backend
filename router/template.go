@@ -12,19 +12,19 @@ import (
 )
 
 type PostTemplate struct {
-	Name         *string             `json:"name,omitempty"`
-	Image        string              `json:"image"`
-	TemplatePins []model.TemplatePin `json:"pins"`
-	CreatedBy    *uuid.UUID          `json:"createdBy,omitempty"`
+	Name      *string     `json:"name,omitempty"`
+	Image     string      `json:"image"`
+	Pins      []model.Pin `json:"pins"`
+	CreatedBy *uuid.UUID  `json:"createdBy,omitempty"`
 }
 
 type PutTemplate struct {
-	Name         *string             `json:"name"`
-	Image        string              `json:"image"`
-	TemplatePins []model.TemplatePin `json:"pins"`
+	Name  *string     `json:"name"`
+	Image string      `json:"image"`
+	Pins  []model.Pin `json:"pins"`
 }
 
-func getTemplates(c echo.Context) error {
+func getSharedTemplates(c echo.Context) error {
 	// sort := c.QueryParam("sort")
 	// var err error
 	// var maxpins int
@@ -45,19 +45,19 @@ func getTemplates(c echo.Context) error {
 	// }
 
 	ctx := c.Request().Context()
-	templates, err := model.GetTemplates(ctx)
+	templates, err := model.GetSharedTemplates(ctx)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	for _, template := range templates {
-		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		pins, err := model.GetPins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		for _, templatePin := range templatePins {
-			template.TemplatePins = append(template.TemplatePins, templatePin)
+		for _, Pin := range pins {
+			template.Pins = append(template.Pins, Pin)
 		}
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
@@ -109,13 +109,13 @@ func getMyTemplates(c echo.Context) error {
 	}
 
 	for _, template := range templates {
-		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		pins, err := model.GetPins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		for _, templatePin := range templatePins {
-			template.TemplatePins = append(template.TemplatePins, templatePin)
+		for _, pin := range pins {
+			template.Pins = append(template.Pins, pin)
 		}
 
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
@@ -126,6 +126,38 @@ func getMyTemplates(c echo.Context) error {
 	}
 
 	return echo.NewHTTPError(http.StatusOK, templates)
+}
+
+func getTemplate(c echo.Context) error {
+	templateID, err := uuid.Parse(c.Param("templateID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	template, err := model.GetTemplate(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	pins, err := model.GetPins(ctx, template.ID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	for _, pin := range pins {
+		template.Pins = append(template.Pins, pin)
+	}
+
+	template.Image, err = model.EncodeToBase64(ctx, template.Image)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK, template)
 }
 
 func postTemplate(c echo.Context) error {
@@ -151,8 +183,8 @@ func postTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, templatePin := range req.TemplatePins {
-		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+	for _, pin := range req.Pins {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
@@ -168,8 +200,8 @@ func postTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	for _, templatePin := range req.TemplatePins {
-		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
+	for _, pin := range req.Pins {
+		err = model.CreatePin(ctx, pin.Number, *templateID, pin.X, pin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -214,8 +246,8 @@ func putTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, templatePin := range req.TemplatePins {
-		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+	for _, pin := range req.Pins {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
@@ -241,13 +273,13 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	err = model.DeleteTemplatePins(ctx, templateID)
+	err = model.DeletePins(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	for _, updatedTemplatePin := range req.TemplatePins {
-		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
+	for _, updatedPin := range req.Pins {
+		err = model.CreatePin(ctx, updatedPin.Number, templateID, updatedPin.X, updatedPin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)

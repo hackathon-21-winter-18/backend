@@ -8,21 +8,21 @@ import (
 )
 
 type Template struct {
-	ID            uuid.UUID     `json:"id" db:"id"`
-	Name          string        `json:"name" db:"name"`
-	Image         string        `json:"image" db:"image"`
-	TemplatePins  []TemplatePin `json:"pins"`
-	Share         bool          `json:"share" db:"share"`
-	SharedAt      time.Time     `db:"shared_at"`
-	FirstSharedAt time.Time     `db:"firstshared_at"`
+	ID            uuid.UUID `json:"id" db:"id"`
+	Name          string    `json:"name" db:"name"`
+	Image         string    `json:"image" db:"image"`
+	Pins          []Pin     `json:"pins"`
+	Share         bool      `json:"share" db:"share"`
+	SharedAt      time.Time `db:"shared_at"`
+	FirstSharedAt time.Time `db:"firstshared_at"`
 }
 
-func GetTemplates(ctx context.Context) ([]*Template, error) {
+func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
 	// if sort == "" || sort == "" {
 
 	// }
-	err := db.SelectContext(ctx, &templates, "SELECT id, name, image, shared_at, firstshared_at FROM templates WHERE share=true")
+	err := db.SelectContext(ctx, &templates, "SELECT id, name, image, share, shared_at, firstshared_at FROM templates WHERE share=true")
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +38,16 @@ func GetMyTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) 
 	}
 
 	return templates, nil
+}
+
+func GetTemplate(ctx context.Context, templateID uuid.UUID) (*Template, error) {
+	var template Template
+	err := db.GetContext(ctx, &template, "SELECT id, name, image, share FROM templates WHERE id=? ", templateID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &template, nil
 }
 
 func CreateTemplate(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {

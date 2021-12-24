@@ -43,9 +43,10 @@ func SetRouting(sess sess.Session) {
 
 		apiPalaces := api.Group("/palaces")
 		{
-			apiPalaces.GET("", getPalaces, userAuthMiddleware)
+			apiPalaces.GET("", getSharedPalaces, userAuthMiddleware)
 			apiPalaces.GET("/me", getMyPalaces, userAuthMiddleware)
 			apiPalaces.POST("/me", postPalace, userAuthMiddleware)
+			apiPalaces.GET("/:palaceID", getPalace, userAuthMiddleware)
 			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
 			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
 			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
@@ -53,9 +54,10 @@ func SetRouting(sess sess.Session) {
 
 		apiTemplages := api.Group("/templates")
 		{
-			apiTemplages.GET("", getTemplates, userAuthMiddleware)
+			apiTemplages.GET("", getSharedTemplates, userAuthMiddleware)
 			apiTemplages.GET("/me", getMyTemplates, userAuthMiddleware)
 			apiTemplages.POST("/me", postTemplate, userAuthMiddleware)
+			apiTemplages.GET("/:templateID", getTemplate, userAuthMiddleware)
 			apiTemplages.PUT("/:templateID", putTemplate, userAuthMiddleware)
 			apiTemplages.DELETE("/:templateID", deleteTemplate, userAuthMiddleware)
 			apiTemplages.PUT("/share/:templateID", shareTemplate, userAuthMiddleware)

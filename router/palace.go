@@ -23,9 +23,9 @@ type PutPalace struct {
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 }
 
-func getPalaces(c echo.Context) error {
+func getSharedPalaces(c echo.Context) error {
 	ctx := c.Request().Context()
-	palaces, err := model.GetSharePalaces(ctx)
+	palaces, err := model.GetSharedPalaces(ctx)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -85,7 +85,7 @@ func getMyPalaces(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	palaces, err := model.GetPalaces(ctx, userID)
+	palaces, err := model.GetMyPalaces(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -109,6 +109,38 @@ func getMyPalaces(c echo.Context) error {
 	}
 
 	return echo.NewHTTPError(http.StatusOK, palaces)
+}
+
+func getPalace(c echo.Context) error {
+	palaceID, err := uuid.Parse(c.Param("palaceID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	palace, err := model.GetPalace(ctx, palaceID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	embededPins, err := model.GetEmbededPins(ctx, palace.ID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}	
+	for _, embededPin := range embededPins {
+		palace.EmbededPins = append(palace.EmbededPins, embededPin)
+	}
+
+	palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	
+	return echo.NewHTTPError(http.StatusOK, palace)
 }
 
 func postPalace(c echo.Context) error {

@@ -17,9 +17,9 @@ type Palace struct {
 	FirstSharedAt time.Time    `db:"firstshared_at"`
 }
 
-func GetSharePalaces(ctx context.Context) ([]*Palace, error) {
+func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, shared_at, firstshared_at FROM palaces WHERE share=true")
+	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, share, shared_at, firstshared_at FROM palaces WHERE share=true")
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func GetSharePalaces(ctx context.Context) ([]*Palace, error) {
 	return palaces, nil
 }
 
-func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
+func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, name, image, share FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
@@ -35,6 +35,16 @@ func GetPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	}
 
 	return palaces, nil
+}
+
+func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
+	var palace Palace
+	err := db.GetContext(ctx, &palace, "SELECT id, name, image, share FROM palaces WHERE id=? ", palaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &palace, nil
 }
 
 func CreatePalace(ctx context.Context, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
