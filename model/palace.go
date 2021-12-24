@@ -159,7 +159,16 @@ func GetPalaceSavedCount(ctx context.Context, palaceID uuid.UUID) (*int, error) 
 }
 
 func RecordSavingUser(ctx context.Context, palaceID, userID uuid.UUID) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO palace_user (palaceID, userID) VALUES (?, ?) ", palaceID, userID)
+	var count int
+	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palace_user WHERE palaceID=? AND userID=? ", palaceID, userID)
+	if err != nil {
+		return nil
+	}
+	if count > 0 {
+		return nil
+	}
+	
+	_, err = db.ExecContext(ctx, "INSERT INTO palace_user (palaceID, userID) VALUES (?, ?) ", palaceID, userID)
 	if err != nil {
 		return err
 	}
