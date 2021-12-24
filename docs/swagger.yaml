@@ -130,17 +130,17 @@ paths:
         400:
           description: 不正なリクエスト
   /palaces/{palaceID}:
-  #   get: 
-  #     tags:
-  #       - palaces
-  #     summary: 特定のpalaceを取得(いらなそう)
-  #     responses:
-  #       200:
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Palace"
+    get: 
+      tags:
+        - palaces
+      summary: 特定のpalaceを取得
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palace"
     put:
       tags: 
         - palaces
@@ -222,17 +222,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/ID"
   /templates/{templateID}:
-  #   get:
-  #     tags:
-  #       - templates
-  #     summary: 特定のtemplateを取得(いらなそう)
-  #     responses:
-  #       200: 
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Template"
+    get:
+      tags:
+        - templates
+      summary: 特定のtemplateを取得(いらなそう)
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
     put:
       tags:
         - templates
