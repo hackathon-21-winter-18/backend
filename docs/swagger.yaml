@@ -346,13 +346,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmbededPin"
-        # createdBy:
-        #   type: string
-        #   format: uuid　フロントが保持できていてpostできれば必要ない
         share: 
           type: boolean
         savedCount:
           type: integer
+        createdBy:
+          type: string
+          format: uuid
     EmbededPin:
       type: object
       description: 単語とピンのペア
@@ -391,12 +391,13 @@ components:
           items:
             $ref: "#/components/schemas/Pin"
           description: ピンの配列
-        # memo:
-        #   type: string
         share: 
           type: boolean
         savedCount:
           type: integer
+        createdBy:
+          type: string
+          format: uuid
       required:
         - id
         - name
@@ -515,6 +516,9 @@ components:
         createrName:
           type: string
           description: 作成者のユーザー名
+        createdBy:
+          type: string
+          format: uuid
     SharedTemplates:
       type: array
       items:
@@ -543,6 +547,9 @@ components:
         createrName:
           type: string
           description: 作成者のユーザー名
+        createdBy:
+          type: string
+          format: uuid
     ID: 
       type: object
       properties:
