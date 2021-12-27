@@ -18,6 +18,7 @@ type Palace struct {
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
 	SavedCount    int          `json:"savedCount"`
+	CreaterName   string       `json:"createrName"`
 }
 
 func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
@@ -33,6 +34,12 @@ func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 			return nil, err
 		}
 		palace.SavedCount = *savedCount
+		
+		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		if err != nil {
+			return nil, err
+		}
+		palace.CreaterName = createrName
 	}
 
 	return palaces, nil
@@ -40,8 +47,9 @@ func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 
 func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, name, createdBy, image, share FROM palaces WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -51,6 +59,12 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 			return nil, err
 		}
 		palace.SavedCount = *savedCount
+
+		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		if err != nil {
+			return nil, err
+		}
+		palace.CreaterName = createrName
 	}
 
 	return palaces, nil
@@ -58,10 +72,16 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 
 func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	var palace Palace
-	err := db.GetContext(ctx, &palace, "SELECT id, name, createdBy, image, share FROM palaces WHERE id=? ", palaceID)
+	err := db.GetContext(ctx, &palace, "SELECT id, originalID, name, createdBy, image, share FROM palaces WHERE id=? ", palaceID)
 	if err != nil {
 		return nil, err
 	}
+
+	createrName, err := GetMe(ctx, palace.CreatedBy.String())
+	if err != nil {
+		return nil, err
+	}
+	palace.CreaterName = createrName
 
 	return &palace, nil
 }
