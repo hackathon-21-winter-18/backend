@@ -368,7 +368,7 @@ components:
           type: string
         place: 
           type: string
-        condition: 
+        situation: 
           type: string
     Templates:
       type: array
