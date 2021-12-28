@@ -54,6 +54,15 @@ func GetPalaceImagePath(ctx context.Context, palaceID uuid.UUID) (string, error)
 	return path, nil
 }
 
+func GetTemplateImagePath(ctx context.Context, templateID uuid.UUID) (string, error) {
+	var path string
+	err := db.GetContext(ctx, &path, "SELECT image FROM templates WHERE id=? ", templateID)
+	if err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 func CreatePathName(ctx context.Context, base64 string) (string, error) { // go run main.goをやりなおしても値は変わらない
 	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 

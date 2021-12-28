@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"sort"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -12,10 +11,11 @@ import (
 )
 
 type PostTemplate struct {
-	Name      *string     `json:"name,omitempty"`
-	Image     string      `json:"image"`
-	Pins      []model.Pin `json:"pins"`
-	CreatedBy *uuid.UUID  `json:"createdBy,omitempty"`
+	Name       *string     `json:"name,omitempty"`
+	Image      string      `json:"image"`
+	Pins       []model.Pin `json:"pins"`
+	CreatedBy  *uuid.UUID  `json:"createdBy,omitempty"`
+	OriginalID *uuid.UUID  `json:"originalID"`
 }
 
 type PutTemplate struct {
@@ -66,25 +66,25 @@ func getSharedTemplates(c echo.Context) error {
 		}
 	}
 
-	// first pin sort
-	min := c.QueryParam("minpins")
-	max := c.QueryParam("maxpins")
-	// // if min != "" && max != "" && min > max {
-	// // 	return echo.NewHTTPError(http.StatusBadRequest)
-	// // }
-	templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
-	// // second sort with query
-	sortmethod := c.QueryParam("sort")
-	switch sortmethod {
-	case "first_shared_at":
-		sort.Slice(templates, func(i, j int) bool {
-			return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
-		})
-	case "shared_at":
-		sort.Slice(templates, func(i, j int) bool {
-			return templates[i].SharedAt.Before(templates[j].SharedAt)
-		})
-	}
+	// // first pin sort
+	// min := c.QueryParam("minpins")
+	// max := c.QueryParam("maxpins")
+	// // // if min != "" && max != "" && min > max {
+	// // // 	return echo.NewHTTPError(http.StatusBadRequest)
+	// // // }
+	// templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
+	// // // second sort with query
+	// sortmethod := c.QueryParam("sort")
+	// switch sortmethod {
+	// case "first_shared_at":
+	// 	sort.Slice(templates, func(i, j int) bool {
+	// 		return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
+	// 	})
+	// case "shared_at":
+	// 	sort.Slice(templates, func(i, j int) bool {
+	// 		return templates[i].SharedAt.Before(templates[j].SharedAt)
+	// 	})
+	// }
 
 	return echo.NewHTTPError(http.StatusOK, templates)
 }
@@ -189,7 +189,7 @@ func postTemplate(c echo.Context) error {
 		}
 	}
 
-	templateID, err := model.CreateTemplate(ctx, userID, req.CreatedBy, req.Name, path)
+	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -205,6 +205,13 @@ func postTemplate(c echo.Context) error {
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
+	if *req.CreatedBy != userID {
+		err = model.RecordTemplateSavingUser(ctx, *req.OriginalID, userID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 	}
 

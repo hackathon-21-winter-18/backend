@@ -29,12 +29,12 @@ func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 	}
 
 	for _, palace := range palaces {
-		savedCount, err := GetPalaceSavedCount(ctx, palace.OriginalID)
+		savedCount, err := GetPalaceSavedCount(ctx, palace.ID)
 		if err != nil {
 			return nil, err
 		}
 		palace.SavedCount = *savedCount
-		
+
 		createrName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
@@ -49,7 +49,6 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
 	var palaces []*Palace
 	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share FROM palaces WHERE heldBy=? ", userID)
 	if err != nil {
-
 		return nil, err
 	}
 
@@ -76,6 +75,12 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	savedCount, err := GetPalaceSavedCount(ctx, palace.ID)
+	if err != nil {
+		return nil, err
+	}
+	palace.SavedCount = *savedCount
 
 	createrName, err := GetMe(ctx, palace.CreatedBy.String())
 	if err != nil {
@@ -179,7 +184,7 @@ func GetPalaceSavedCount(ctx context.Context, palaceID uuid.UUID) (*int, error) 
 	return &savedCount, nil
 }
 
-func RecordSavingUser(ctx context.Context, palaceID, userID uuid.UUID) error {
+func RecordPalaceSavingUser(ctx context.Context, palaceID, userID uuid.UUID) error {
 	var count int
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palace_user WHERE palaceID=? AND userID=? ", palaceID, userID)
 	if err != nil {

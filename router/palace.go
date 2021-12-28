@@ -24,7 +24,7 @@ type PostPalace struct {
 	Image       string             `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 	CreatedBy   *uuid.UUID         `json:"createdBy,omitempty"`
-	OriginalID  *uuid.UUID          `json:"originalID"`
+	OriginalID  *uuid.UUID         `json:"originalID"`
 }
 type PutPalace struct {
 	Name        *string            `json:"name"`
@@ -209,7 +209,7 @@ func postPalace(c echo.Context) error {
 	}
 
 	if *req.CreatedBy != userID {
-		err = model.RecordSavingUser(ctx, *req.OriginalID, userID)
+		err = model.RecordPalaceSavingUser(ctx, *req.OriginalID, userID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}

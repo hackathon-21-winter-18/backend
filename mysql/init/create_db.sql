@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   `id` char(36) NOT NULL UNIQUE,
   `name` varchar(15) NOT NULL UNIQUE,
   `hashedPass` varchar(200) NOT NULL,
-  -- `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -67,13 +66,15 @@ CREATE TABLE IF NOT EXISTS `pins` (
 
 CREATE TABLE IF NOT EXISTS `palace_user` (
   `palaceID` char(36) NOT NUll,
-  `userID` char(36) NOT NUll
-  -- FOREIGN KEY
+  `userID` char(36) NOT NUll,
+  FOREIGN KEY (`palaceID`) REFERENCES palaces(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`userID`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `palace_user` (
-  `palaceID` char(36) NOT NUll,
-  `userID` char(36) NOT NUll
-  -- FOREIGN KEY
+CREATE TABLE IF NOT EXISTS `template_user` (
+  `templateID` char(36) NOT NUll,
+  `userID` char(36) NOT NUll,
+  FOREIGN KEY (`templateID`) REFERENCES templates(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`userID`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
