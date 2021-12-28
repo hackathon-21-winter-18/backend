@@ -122,20 +122,25 @@ paths:
       responses:
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ID"
+
         400:
           description: 不正なリクエスト
   /palaces/{palaceID}:
-  #   get: 
-  #     tags:
-  #       - palaces
-  #     summary: 特定のpalaceを取得(いらなそう)
-  #     responses:
-  #       200:
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Palace"
+    get: 
+      tags:
+        - palaces
+      summary: 特定のpalaceを取得
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Palace"
     put:
       tags: 
         - palaces
@@ -212,18 +217,22 @@ paths:
       responses: 
         200:
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ID"
   /templates/{templateID}:
-  #   get:
-  #     tags:
-  #       - templates
-  #     summary: 特定のtemplateを取得(いらなそう)
-  #     responses:
-  #       200: 
-  #         description: OK
-  #         content:
-  #           application/json:
-  #             schema:
-  #               $ref: "#/components/schemas/Template"
+    get:
+      tags:
+        - templates
+      summary: 特定のtemplateを取得(いらなそう)
+      responses:
+        200: 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
     put:
       tags:
         - templates
@@ -337,9 +346,13 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmbededPin"
-        # createdBy:
-        #   type: string
-        #   format: uuid　フロントが保持できていてpostできれば必要ない
+        share: 
+          type: boolean
+        savedCount:
+          type: integer
+        createdBy:
+          type: string
+          format: uuid
     EmbededPin:
       type: object
       description: 単語とピンのペア
@@ -355,7 +368,7 @@ components:
           type: string
         place: 
           type: string
-        do: 
+        situation: 
           type: string
     Templates:
       type: array
@@ -378,8 +391,13 @@ components:
           items:
             $ref: "#/components/schemas/Pin"
           description: ピンの配列
-        # memo:
-        #   type: string
+        share: 
+          type: boolean
+        savedCount:
+          type: integer
+        createdBy:
+          type: string
+          format: uuid
       required:
         - id
         - name
@@ -413,6 +431,10 @@ components:
         createdBy:
           type: string
           format: uuid
+        originalID:
+          type: string
+          format: uuid
+          description: 公開されてるものに対してのみ必要だから任意
       required:
         - id
         - name
@@ -445,6 +467,10 @@ components:
         createdBy:
           type: string
           format: uuid
+        originalID:
+          type: string
+          format: uuid
+          description: 公開されてるものに対してのみ必要だから任意
     PutPalace:
       type: object
       properties:
@@ -490,6 +516,9 @@ components:
         createrName:
           type: string
           description: 作成者のユーザー名
+        createdBy:
+          type: string
+          format: uuid
     SharedTemplates:
       type: array
       items:
@@ -518,3 +547,12 @@ components:
         createrName:
           type: string
           description: 作成者のユーザー名
+        createdBy:
+          type: string
+          format: uuid
+    ID: 
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
