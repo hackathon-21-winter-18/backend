@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"sort"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -12,33 +11,53 @@ import (
 )
 
 type PostTemplate struct {
-	Name         *string             `json:"name,omitempty"`
-	Image        string              `json:"image"`
-	TemplatePins []model.TemplatePin `json:"pins"`
-	CreatedBy    *uuid.UUID          `json:"createdBy,omitempty"`
+	Name       *string     `json:"name,omitempty"`
+	Image      string      `json:"image"`
+	Pins       []model.Pin `json:"pins"`
+	CreatedBy  *uuid.UUID  `json:"createdBy,omitempty"`
+	OriginalID *uuid.UUID  `json:"originalID"`
 }
 
 type PutTemplate struct {
-	Name         *string             `json:"name"`
-	Image        string              `json:"image"`
-	TemplatePins []model.TemplatePin `json:"pins"`
+	Name  *string     `json:"name"`
+	Image string      `json:"image"`
+	Pins  []model.Pin `json:"pins"`
 }
 
-func getTemplates(c echo.Context) error {
+func getSharedTemplates(c echo.Context) error {
+	// sort := c.QueryParam("sort")
+	// var err error
+	// var maxpins int
+	// if c.QueryParam("maxpins") != "" {
+	// 	maxpins, err = strconv.Atoi(c.QueryParam("maxpins"))
+	// 	if err != nil {
+	// 		c.Logger().Error(err)
+	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	// 	}
+	// }
+	// var minpins int
+	// if c.QueryParam("minpins") != "" {
+	// 	minpins, err = strconv.Atoi(c.QueryParam("minpins"))
+	// 	if err != nil {
+	// 		c.Logger().Error(err)
+	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
+	// 	}
+	// }
+
 	ctx := c.Request().Context()
-	templates, err := model.GetShareTemplates(ctx)
+	templates, err := model.GetSharedTemplates(ctx)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	for _, template := range templates {
-		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		pins, err := model.GetPins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		for _, templatePin := range templatePins {
-			template.TemplatePins = append(template.TemplatePins, templatePin)
+		for _, Pin := range pins {
+			template.Pins = append(template.Pins, Pin)
 		}
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
 		if err != nil {
@@ -47,25 +66,25 @@ func getTemplates(c echo.Context) error {
 		}
 	}
 
-	// first pin sort
-	min := c.QueryParam("minpins")
-	max := c.QueryParam("maxpins")
-	if min != "" && max != "" && min > max {
-		return echo.NewHTTPError(http.StatusBadRequest)
-	}
-	templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
-	// second sort with query
-	sortmethod := c.QueryParam("sort")
-	switch sortmethod {
-	case "first_shared_at":
-		sort.Slice(templates, func(i, j int) bool {
-			return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
-		})
-	case "shared_at":
-		sort.Slice(templates, func(i, j int) bool {
-			return templates[i].SharedAt.Before(templates[j].SharedAt)
-		})
-	}
+	// // first pin sort
+	// min := c.QueryParam("minpins")
+	// max := c.QueryParam("maxpins")
+	// // // if min != "" && max != "" && min > max {
+	// // // 	return echo.NewHTTPError(http.StatusBadRequest)
+	// // // }
+	// templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
+	// // // second sort with query
+	// sortmethod := c.QueryParam("sort")
+	// switch sortmethod {
+	// case "first_shared_at":
+	// 	sort.Slice(templates, func(i, j int) bool {
+	// 		return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
+	// 	})
+	// case "shared_at":
+	// 	sort.Slice(templates, func(i, j int) bool {
+	// 		return templates[i].SharedAt.Before(templates[j].SharedAt)
+	// 	})
+	// }
 
 	return echo.NewHTTPError(http.StatusOK, templates)
 }
@@ -83,20 +102,20 @@ func getMyTemplates(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	templates, err := model.GetTemplates(ctx, userID)
+	templates, err := model.GetMyTemplates(ctx, userID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	for _, template := range templates {
-		templatePins, err := model.GetTemplatePins(ctx, template.ID)
+		pins, err := model.GetPins(ctx, template.ID)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
-		for _, templatePin := range templatePins {
-			template.TemplatePins = append(template.TemplatePins, templatePin)
+		for _, pin := range pins {
+			template.Pins = append(template.Pins, pin)
 		}
 
 		template.Image, err = model.EncodeToBase64(ctx, template.Image)
@@ -107,6 +126,38 @@ func getMyTemplates(c echo.Context) error {
 	}
 
 	return echo.NewHTTPError(http.StatusOK, templates)
+}
+
+func getTemplate(c echo.Context) error {
+	templateID, err := uuid.Parse(c.Param("templateID"))
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+
+	ctx := c.Request().Context()
+	template, err := model.GetTemplate(ctx, templateID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	pins, err := model.GetPins(ctx, template.ID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	for _, pin := range pins {
+		template.Pins = append(template.Pins, pin)
+	}
+
+	template.Image, err = model.EncodeToBase64(ctx, template.Image)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	return echo.NewHTTPError(http.StatusOK, template)
 }
 
 func postTemplate(c echo.Context) error {
@@ -132,13 +183,13 @@ func postTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, templatePin := range req.TemplatePins {
-		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+	for _, pin := range req.Pins {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
 
-	templateID, err := model.CreateTemplate(ctx, userID, req.CreatedBy, req.Name, path)
+	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -149,11 +200,18 @@ func postTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	for _, templatePin := range req.TemplatePins {
-		err = model.CreateTemplatePin(ctx, templatePin.Number, *templateID, templatePin.X, templatePin.Y)
+	for _, pin := range req.Pins {
+		err = model.CreatePin(ctx, pin.Number, *templateID, pin.X, pin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
+	if *req.CreatedBy != userID {
+		err = model.RecordTemplateSavingUser(ctx, *req.OriginalID, userID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 	}
 
@@ -195,8 +253,8 @@ func putTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
-	for _, templatePin := range req.TemplatePins {
-		if templatePin.Number == nil || templatePin.X == nil || templatePin.Y == nil {
+	for _, pin := range req.Pins {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
@@ -222,13 +280,13 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	err = model.DeleteTemplatePins(ctx, templateID)
+	err = model.DeletePins(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	for _, updatedTemplatePin := range req.TemplatePins {
-		err = model.CreateTemplatePin(ctx, updatedTemplatePin.Number, templateID, updatedTemplatePin.X, updatedTemplatePin.Y)
+	for _, updatedPin := range req.Pins {
+		err = model.CreatePin(ctx, updatedPin.Number, templateID, updatedPin.X, updatedPin.Y)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -308,7 +366,7 @@ func shareTemplate(c echo.Context) error {
 		c.Logger().Error(err)
 		return generateEchoError(err)
 	}
-	
+
 	err = model.ShareTemplate(ctx, templateID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

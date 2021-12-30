@@ -9,15 +9,15 @@ import (
 )
 
 type EmbededPin struct {
-	Number *int     `json:"number,omitempty" db:"number"`
-	X      *float32 `json:"x,omitempty" db:"x"`
-	Y      *float32 `json:"y,omitempty" db:"y"`
-	Word   string   `json:"word" db:"word"`
-	Place  string   `json:"place" db:"place"`
-	Do     string   `json:"do" db:"do"`
+	Number    *int     `json:"number,omitempty" db:"number"`
+	X         *float32 `json:"x,omitempty" db:"x"`
+	Y         *float32 `json:"y,omitempty" db:"y"`
+	Word      string   `json:"word" db:"word"`
+	Place     string   `json:"place" db:"place"`
+	Situation string   `json:"situation" db:"situation"`
 }
 
-type TemplatePin struct {
+type Pin struct {
 	Number *int     `json:"number,omitempty" db:"number"`
 	X      *float32 `json:"x" db:"x"`
 	Y      *float32 `json:"y" db:"y"`
@@ -47,14 +47,14 @@ func ExtractFromPalacesBasedOnEmbededPins(palaces []*Palace, max, min string) []
 
 func ExtractFromTemplatesBasedOnTemplatePins(templates []*Template, max, min string) []*Template {
 	sort.Slice(templates, func(i, j int) bool {
-		pini := len(templates[i].TemplatePins)
-		pinj := len(templates[j].TemplatePins)
+		pini := len(templates[i].Pins)
+		pinj := len(templates[j].Pins)
 		return pini < pinj
 	})
 	minptr := 0
 	maxptr := len(templates)
 	for i, v := range templates {
-		pin := len(v.TemplatePins)
+		pin := len(v.Pins)
 		if minpin, err := strconv.Atoi(min); err == nil && pin < minpin {
 			minptr = i + 1
 		}
@@ -69,7 +69,7 @@ func ExtractFromTemplatesBasedOnTemplatePins(templates []*Template, max, min str
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
-	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, do FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
+	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, situation FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, erro
 	return embededPins, nil
 }
 
-func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, do string) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, do, palaceID) VALUES (?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, do, palaceID)
+func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, condition string) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, situation, palaceID) VALUES (?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, condition, palaceID)
 	if err != nil {
 		return err
 	}
@@ -93,9 +93,9 @@ func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 	return nil
 }
 
-func GetTemplatePins(ctx context.Context, TemplateID uuid.UUID) ([]TemplatePin, error) {
-	var templatePins []TemplatePin
-	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y FROM templatepins WHERE templateID=? ORDER BY number ASC ", TemplateID)
+func GetPins(ctx context.Context, templateID uuid.UUID) ([]Pin, error) {
+	var templatePins []Pin
+	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y FROM pins WHERE templateID=? ORDER BY number ASC ", templateID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,16 +103,16 @@ func GetTemplatePins(ctx context.Context, TemplateID uuid.UUID) ([]TemplatePin, 
 	return templatePins, nil
 }
 
-func CreateTemplatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO templatepins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
+func CreatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO pins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func DeleteTemplatePins(ctx context.Context, templateID uuid.UUID) error {
-	_, err := db.ExecContext(ctx, "DELETE FROM templatepins WHERE templateID=? ", templateID)
+func DeletePins(ctx context.Context, templateID uuid.UUID) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM pins WHERE templateID=? ", templateID)
 	if err != nil {
 		return err
 	}
