@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
@@ -42,6 +43,8 @@ func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, err
 	if err != nil {
 		panic(err)
 	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
 	sess.Values["userID"] = userID.String()
 	sess.Save(c.Request(), c.Response())
 
@@ -67,6 +70,8 @@ func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	if err != nil {
 		panic(err)
 	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
 	sess.Values["userID"] = user.ID.String()
 	sess.Save(c.Request(), c.Response())
 
