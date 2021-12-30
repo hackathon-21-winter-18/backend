@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
   `y` decimal(10, 2) NOT NULL,
   `word` varchar(15) NULL,
   `place` varchar(15) NULL,
-  `do` varchar(15) NULL,
+  `situation` varchar(15) NULL,
   `palaceID` char(36) NOT NULL,
   FOREIGN KEY (`palaceID`) REFERENCES palaces(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
