@@ -19,7 +19,7 @@ func SetRouting(sess sess.Session) {
 	e.Use(middleware.Logger())
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"https://hackathon-21-winter-18.github.io", "http://localhost:3000"},
+		AllowOrigins:     []string{"https://hackathon-21-winter-18.github.io", "http://localhost:3000", "https://frontend-opal-delta-19.vercel.app"},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowCredentials: true,
 	}))
