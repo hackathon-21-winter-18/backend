@@ -32,7 +32,7 @@ func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
 	}
 
 	for _, template := range templates {
-		savedCount, err := GetPalaceSavedCount(ctx, template.ID)
+		savedCount, err := GetTemplateSavedCount(ctx, template.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func GetMyTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) 
 	}
 
 	for _, template := range templates {
-		savedCount, err := GetPalaceSavedCount(ctx, template.ID)
+		savedCount, err := GetTemplateSavedCount(ctx, template.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func GetTemplate(ctx context.Context, templateID uuid.UUID) (*Template, error) {
 		return nil, err
 	}
 
-	savedCount, err := GetPalaceSavedCount(ctx, template.ID)
+	savedCount, err := GetTemplateSavedCount(ctx, template.ID)
 	if err != nil {
 		return nil, err
 	}
