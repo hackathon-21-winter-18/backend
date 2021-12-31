@@ -17,7 +17,7 @@ type Template struct {
 	Share         bool      `json:"share" db:"share"`
 	SharedAt      time.Time `db:"shared_at"`
 	FirstSharedAt time.Time `db:"firstshared_at"`
-	SavedCount    int       `json:"savedCount"`
+	SavedCount    int       `json:"savedCount" db:"savedCount"`
 	CreaterName   string    `json:"createrName"`
 }
 

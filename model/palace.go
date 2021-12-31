@@ -17,8 +17,14 @@ type Palace struct {
 	Share         bool         `json:"share" db:"share"`
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
-	SavedCount    int          `json:"savedCount"`
+	SavedCount    int          `json:"savedCount" db:"savedCount"`
 	CreaterName   string       `json:"createrName"`
+}
+
+type RequestQuery struct {
+	Sort string 
+	MaxEmbededPins int
+	MinEmbededPins int
 }
 
 func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
@@ -195,6 +201,16 @@ func RecordPalaceSavingUser(ctx context.Context, palaceID, userID uuid.UUID) err
 	}
 
 	_, err = db.ExecContext(ctx, "INSERT INTO palace_user (palaceID, userID) VALUES (?, ?) ", palaceID, userID)
+	if err != nil {
+		return err
+	}
+
+	var savedCount int
+	err = db.GetContext(ctx, &savedCount, "SELECT COUNT(*) FROM palace_user WHERE palaceID=? ", palaceID)
+	if err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount + 1, palaceID)
 	if err != nil {
 		return err
 	}
