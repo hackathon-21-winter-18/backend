@@ -188,8 +188,9 @@ func postPalace(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_embededPins := len(req.EmbededPins)
 
-	palaceID, err := model.CreatePalace(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, path)
+	palaceID, err := model.CreatePalace(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, number_of_embededPins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -258,13 +259,14 @@ func putPalace(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_embededPins := len(req.EmbededPins)
 
 	unupdatedPath, err := model.GetPalaceImagePath(ctx, palaceID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.UpdatePalace(ctx, palaceID, req.Name, path)
+	err = model.UpdatePalace(ctx, palaceID, req.Name, number_of_embededPins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return generateEchoError(err)

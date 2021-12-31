@@ -91,20 +91,20 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	return &palace, nil
 }
 
-func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, number_of_embededPins int, path string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
 	if originalID == nil {
 		originalID = &palaceID
 	}
 	date := time.Now()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, path, date, date)
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, number_of_embededPins, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, number_of_embededPins, path, date, date)
 	if err != nil {
 		return nil, err
 	}
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, image string) error {
 	var count int
 	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
@@ -115,7 +115,7 @@ func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image s
 		return ErrNotFound
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, palaceID)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=? WHERE id=? ", name, number_of_embededPins, image, date, palaceID)
 	if err != nil {
 		return err
 	}

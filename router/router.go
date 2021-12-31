@@ -41,26 +41,26 @@ func SetRouting(sess sess.Session) {
 			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
 		}
 
-		apiPalaces := api.Group("/palaces")
+		apiPalaces := api.Group("/palaces", userAuthMiddleware)
 		{
-			apiPalaces.GET("", getSharedPalaces, userAuthMiddleware)
-			apiPalaces.GET("/me", getMyPalaces, userAuthMiddleware)
-			apiPalaces.POST("/me", postPalace, userAuthMiddleware)
-			apiPalaces.GET("/:palaceID", getPalace, userAuthMiddleware)
-			apiPalaces.PUT("/:palaceID", putPalace, userAuthMiddleware)
-			apiPalaces.DELETE("/:palaceID", deletePalace, userAuthMiddleware)
-			apiPalaces.PUT("/share/:palaceID", sharePalace, userAuthMiddleware)
+			apiPalaces.GET("", getSharedPalaces)
+			apiPalaces.GET("/me", getMyPalaces)
+			apiPalaces.POST("/me", postPalace)
+			apiPalaces.GET("/:palaceID", getPalace)
+			apiPalaces.PUT("/:palaceID", putPalace)
+			apiPalaces.DELETE("/:palaceID", deletePalace)
+			apiPalaces.PUT("/share/:palaceID", sharePalace)
 		}
 
-		apiTemplages := api.Group("/templates")
+		apiTemplages := api.Group("/templates", userAuthMiddleware)
 		{
-			apiTemplages.GET("", getSharedTemplates, userAuthMiddleware)
-			apiTemplages.GET("/me", getMyTemplates, userAuthMiddleware)
-			apiTemplages.POST("/me", postTemplate, userAuthMiddleware)
-			apiTemplages.GET("/:templateID", getTemplate, userAuthMiddleware)
-			apiTemplages.PUT("/:templateID", putTemplate, userAuthMiddleware)
-			apiTemplages.DELETE("/:templateID", deleteTemplate, userAuthMiddleware)
-			apiTemplages.PUT("/share/:templateID", shareTemplate, userAuthMiddleware)
+			apiTemplages.GET("", getSharedTemplates)
+			apiTemplages.GET("/me", getMyTemplates)
+			apiTemplages.POST("/me", postTemplate)
+			apiTemplages.GET("/:templateID", getTemplate)
+			apiTemplages.PUT("/:templateID", putTemplate)
+			apiTemplages.DELETE("/:templateID", deleteTemplate)
+			apiTemplages.PUT("/share/:templateID", shareTemplate)
 		}
 	}
 

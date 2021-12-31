@@ -37,7 +37,7 @@ func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
 			return nil, err
 		}
 		template.SavedCount = *savedCount
-		
+
 		createrName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
@@ -61,7 +61,7 @@ func GetMyTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) 
 			return nil, err
 		}
 		template.SavedCount = *savedCount
-		
+
 		createrName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
