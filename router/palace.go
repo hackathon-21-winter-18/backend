@@ -89,13 +89,13 @@ func getSharedPalaces(c echo.Context) error {
 			palace.EmbededPins = append(palace.EmbededPins, palacePin)
 		}
 
-		// palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
-		// if err != nil {
-		// 	c.Logger().Error(err)
-		// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
-		// }
+		palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
 	}
-	
+
 	return echo.NewHTTPError(http.StatusOK, palaces)
 }
 
