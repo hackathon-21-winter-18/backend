@@ -1,8 +1,10 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -33,8 +35,45 @@ type PutPalace struct {
 }
 
 func getSharedPalaces(c echo.Context) error {
+	var err error
+	var max int
+	if c.QueryParam("maxpins") != "" {
+		max, err = strconv.Atoi(c.QueryParam("maxpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if max <= 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("maxpins can't be 0 or negative number"))
+		}
+	}
+	var min int
+	if c.QueryParam("minpins") != "" {
+		min, err = strconv.Atoi(c.QueryParam("minpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if min < 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("minpins can't be negative number"))
+		}
+	}
+	if max < min && max != 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid pins query"))
+	}
+	sort := c.QueryParam("sort")
+	if sort != "" && sort != "first_shared_at" && sort != "shared_at" && sort != "savedCount" {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid sort query"))
+	}
+
+	requestQuery := model.RequestQuery{
+		Sort: sort,
+		MaxEmbededPins: max,
+		MinEmbededPins: min,
+	}
+
 	ctx := c.Request().Context()
-	palaces, err := model.GetSharedPalaces(ctx)
+	palaces, err := model.GetSharedPalaces(ctx, requestQuery)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -50,42 +89,13 @@ func getSharedPalaces(c echo.Context) error {
 			palace.EmbededPins = append(palace.EmbededPins, palacePin)
 		}
 
-		palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
-		if err != nil {
-			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
-		}
+		// palace.Image, err = model.EncodeToBase64(ctx, palace.Image)
+		// if err != nil {
+		// 	c.Logger().Error(err)
+		// 	return echo.NewHTTPError(http.StatusInternalServerError, err)
+		// }
 	}
-
-	// res := []*PalaceResponse{}
-	// for _, palace := range palaces {
-	// 	res = append(res, *PalaceResponse{
-	// 		ID:   palace.ID,
-	// 		Name: palace.Name,
-	// 	})
-	// }
-
-	// // first pin sort
-	// min := c.QueryParam("minpins")
-	// max := c.QueryParam("maxpins")
-	// if min != "" && max != "" && min > max {
-	// 	return echo.NewHTTPError(http.StatusBadRequest)
-	// }
-	// palaces = model.ExtractFromPalacesBasedOnEmbededPins(palaces, max, min)
-	// // second sort with query
-	// sortmethod := c.QueryParam("sort")
-	// switch sortmethod {
-	// case "first_shared_at":
-	// 	fmt.Println("first_shared_at")
-	// 	sort.Slice(palaces, func(i, j int) bool {
-	// 		return palaces[i].FirstSharedAt.Before(palaces[j].FirstSharedAt)
-	// 	})
-	// case "shared_at":
-	// 	sort.Slice(palaces, func(i, j int) bool {
-	// 		return palaces[i].SharedAt.Before(palaces[j].SharedAt)
-	// 	})
-	// }
-
+	
 	return echo.NewHTTPError(http.StatusOK, palaces)
 }
 

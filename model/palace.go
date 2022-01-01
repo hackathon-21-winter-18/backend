@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,14 +24,31 @@ type Palace struct {
 }
 
 type RequestQuery struct {
-	Sort string 
+	Sort           string
 	MaxEmbededPins int
 	MinEmbededPins int
 }
 
-func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
+func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace, error) {
+	var queryCondition string
+	if requestQuery.MaxEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins <= " + strconv.Itoa(requestQuery.MaxEmbededPins)
+	}
+	if requestQuery.MinEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins >= " + strconv.Itoa(requestQuery.MinEmbededPins)
+	}
+	if requestQuery.Sort == "first_shared_at" || requestQuery.Sort == "" {
+		queryCondition += " ORDER BY firstshared_at DESC"
+	} else if requestQuery.Sort == "shared_at" {
+		queryCondition += " ORDER BY shared_at DESC"
+	} else if requestQuery.Sort == "savedCount" {
+		queryCondition += " ORDER BY savedCount DESC"
+	} else {
+		return nil, errors.New("invalid sort query")
+	}
+
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM palaces WHERE share=true")
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM palaces WHERE share=true" + queryCondition)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +229,7 @@ func RecordPalaceSavingUser(ctx context.Context, palaceID, userID uuid.UUID) err
 	if err != nil {
 		return err
 	}
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount + 1, palaceID)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount+1, palaceID)
 	if err != nil {
 		return err
 	}
