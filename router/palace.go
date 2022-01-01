@@ -111,8 +111,43 @@ func getMyPalaces(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	var max int
+	if c.QueryParam("maxpins") != "" {
+		max, err = strconv.Atoi(c.QueryParam("maxpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if max <= 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("maxpins can't be 0 or negative number"))
+		}
+	}
+	var min int
+	if c.QueryParam("minpins") != "" {
+		min, err = strconv.Atoi(c.QueryParam("minpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if min < 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("minpins can't be negative number"))
+		}
+	}
+	if max < min && max != 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid pins query"))
+	}
+	sort := c.QueryParam("sort")
+	if sort != "" && sort != "updated_at" && sort != "-updated_at" {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid sort query"))
+	}
+
+	requestQuery := model.RequestQuery{
+		Sort: sort,
+		MaxEmbededPins: max,
+		MinEmbededPins: min,
+	}
 	ctx := c.Request().Context()
-	palaces, err := model.GetMyPalaces(ctx, userID)
+	palaces, err := model.GetMyPalaces(ctx, userID, requestQuery)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
