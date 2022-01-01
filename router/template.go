@@ -188,8 +188,9 @@ func postTemplate(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_pins := len(req.Pins)
 
-	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, path)
+	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, number_of_pins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -258,13 +259,14 @@ func putTemplate(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_pins := len(req.Pins)
 
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
+	err = model.UpdateTemplate(ctx, templateID, req.Name, number_of_pins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return generateEchoError(err)

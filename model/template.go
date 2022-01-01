@@ -23,9 +23,6 @@ type Template struct {
 
 func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
 	var templates []*Template
-	// if sort == "" || sort == "" {
-
-	// }
 	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM templates WHERE share=true")
 	if err != nil {
 		return nil, err
@@ -94,20 +91,20 @@ func GetTemplate(ctx context.Context, templateID uuid.UUID) (*Template, error) {
 	return &template, nil
 }
 
-func CreateTemplate(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
+func CreateTemplate(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, number_of_pins int, path string) (*uuid.UUID, error) {
 	templateID := uuid.New()
 	if originalID == nil {
 		originalID = &templateID
 	}
 	date := time.Now()
-	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, originalID, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ", templateID, originalID, name, createdBy, userID, path, date, date)
+	_, err := db.ExecContext(ctx, "INSERT INTO templates (id, originalID, name, createdBy, heldBy, number_of_pins, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", templateID, originalID, name, createdBy, userID, number_of_pins, path, date, date)
 	if err != nil {
 		return nil, err
 	}
 	return &templateID, nil
 }
 
-func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name *string, image string) error {
+func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name *string, number_of_pins int, image string) error {
 	var count int
 
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM templates WHERE id=?", templateID)
@@ -118,7 +115,7 @@ func UpdateTemplate(ctx context.Context, templateID uuid.UUID, name *string, ima
 		return ErrNotFound
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, templateID)
+	_, err = db.ExecContext(ctx, "UPDATE templates SET name=?, number_of_Pins=?, image=?, updated_at=? WHERE id=? ", name, number_of_pins, image, date, templateID)
 	if err != nil {
 		return err
 	}
@@ -198,6 +195,16 @@ func RecordTemplateSavingUser(ctx context.Context, templateID, userID uuid.UUID)
 	}
 
 	_, err = db.ExecContext(ctx, "INSERT INTO template_user (templateID, userID) VALUES (?, ?) ", templateID, userID)
+	if err != nil {
+		return err
+	}
+
+	var savedCount int
+	err = db.GetContext(ctx, &savedCount, "SELECT COUNT(*) FROM template_user WHERE palaceID=? ", templateID)
+	if err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount + 1, templateID)
 	if err != nil {
 		return err
 	}

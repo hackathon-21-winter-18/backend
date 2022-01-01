@@ -232,7 +232,7 @@ func RecordPalaceSavingUser(ctx context.Context, palaceID, userID uuid.UUID) err
 	if err != nil {
 		return err
 	}
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount+1, palaceID)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount + 1, palaceID)
 	if err != nil {
 		return err
 	}
