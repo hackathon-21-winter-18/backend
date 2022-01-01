@@ -146,6 +146,7 @@ func getMyPalaces(c echo.Context) error {
 		MaxEmbededPins: max,
 		MinEmbededPins: min,
 	}
+	
 	ctx := c.Request().Context()
 	palaces, err := model.GetMyPalaces(ctx, userID, requestQuery)
 	if err != nil {

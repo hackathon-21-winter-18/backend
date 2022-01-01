@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,20 +23,31 @@ type Template struct {
 	CreaterName   string    `json:"createrName"`
 }
 
-func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
+func GetSharedTemplates(ctx context.Context, requestQuery RequestQuery) ([]*Template, error) {
+	var queryCondition string
+	if requestQuery.MaxEmbededPins > 0 {
+		queryCondition += " AND number_of_pins <= " + strconv.Itoa(requestQuery.MaxEmbededPins)
+	}
+	if requestQuery.MinEmbededPins > 0 {
+		queryCondition += " AND number_of_pins >= " + strconv.Itoa(requestQuery.MinEmbededPins)
+	}
+	if requestQuery.Sort == "first_shared_at" || requestQuery.Sort == "" {
+		queryCondition += " ORDER BY firstshared_at DESC"
+	} else if requestQuery.Sort == "shared_at" {
+		queryCondition += " ORDER BY shared_at DESC"
+	} else if requestQuery.Sort == "savedCount" {
+		queryCondition += " ORDER BY savedCount DESC"
+	} else {
+		return nil, errors.New("invalid sort query")
+	}
+
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM templates WHERE share=true")
+	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, savedCount, shared_at, firstshared_at FROM templates WHERE share=true" + queryCondition)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, template := range templates {
-		savedCount, err := GetTemplateSavedCount(ctx, template.ID)
-		if err != nil {
-			return nil, err
-		}
-		template.SavedCount = *savedCount
-
+	for _, template := range templates {		
 		createrName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
@@ -45,9 +58,24 @@ func GetSharedTemplates(ctx context.Context) ([]*Template, error) {
 	return templates, nil
 }
 
-func GetMyTemplates(ctx context.Context, userID uuid.UUID) ([]*Template, error) {
+func GetMyTemplates(ctx context.Context, userID uuid.UUID, requestQuery RequestQuery) ([]*Template, error) {
+	var queryCondition string
+	if requestQuery.MaxEmbededPins > 0 {
+		queryCondition += " AND number_of_pins <= " + strconv.Itoa(requestQuery.MaxEmbededPins)
+	}
+	if requestQuery.MinEmbededPins > 0 {
+		queryCondition += " AND number_of_pins >= " + strconv.Itoa(requestQuery.MinEmbededPins)
+	}
+	if requestQuery.Sort == "updated_at" || requestQuery.Sort == "" {
+		queryCondition += " ORDER BY updated_at DESC"
+	} else if requestQuery.Sort == "-updated_at" {
+		queryCondition += " ORDER BY updated_at ASC"
+	} else {
+		return nil, errors.New("invalid sort query")
+	}
+	
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share FROM templates WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, savedCount FROM templates WHERE heldBy=? " + queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -200,11 +228,11 @@ func RecordTemplateSavingUser(ctx context.Context, templateID, userID uuid.UUID)
 	}
 
 	var savedCount int
-	err = db.GetContext(ctx, &savedCount, "SELECT COUNT(*) FROM template_user WHERE palaceID=? ", templateID)
+	err = db.GetContext(ctx, &savedCount, "SELECT COUNT(*) FROM template_user WHERE templateID=? ", templateID)
 	if err != nil {
 		return err
 	}
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount + 1, templateID)
+	_, err = db.ExecContext(ctx, "UPDATE templates SET savedCount=? WHERE id=? ", savedCount, templateID)
 	if err != nil {
 		return err
 	}
