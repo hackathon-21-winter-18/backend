@@ -1,8 +1,10 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
@@ -25,27 +27,45 @@ type PutTemplate struct {
 }
 
 func getSharedTemplates(c echo.Context) error {
-	// sort := c.QueryParam("sort")
-	// var err error
-	// var maxpins int
-	// if c.QueryParam("maxpins") != "" {
-	// 	maxpins, err = strconv.Atoi(c.QueryParam("maxpins"))
-	// 	if err != nil {
-	// 		c.Logger().Error(err)
-	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
-	// 	}
-	// }
-	// var minpins int
-	// if c.QueryParam("minpins") != "" {
-	// 	minpins, err = strconv.Atoi(c.QueryParam("minpins"))
-	// 	if err != nil {
-	// 		c.Logger().Error(err)
-	// 		return echo.NewHTTPError(http.StatusBadRequest, err)
-	// 	}
-	// }
+	var err error
+	var max int
+	if c.QueryParam("maxpins") != "" {
+		max, err = strconv.Atoi(c.QueryParam("maxpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if max <= 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("maxpins can't be 0 or negative number"))
+		}
+	}
+	var min int
+	if c.QueryParam("minpins") != "" {
+		min, err = strconv.Atoi(c.QueryParam("minpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if min < 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("minpins can't be negative number"))
+		}
+	}
+	if max < min && max != 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid pins query"))
+	}
+	sort := c.QueryParam("sort")
+	if sort != "" && sort != "first_shared_at" && sort != "shared_at" && sort != "savedCount" {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid sort query"))
+	}
+
+	requestQuery := model.RequestQuery{
+		Sort:           sort,
+		MaxEmbededPins: max,
+		MinEmbededPins: min,
+	}
 
 	ctx := c.Request().Context()
-	templates, err := model.GetSharedTemplates(ctx)
+	templates, err := model.GetSharedTemplates(ctx, requestQuery)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -66,26 +86,6 @@ func getSharedTemplates(c echo.Context) error {
 		}
 	}
 
-	// // first pin sort
-	// min := c.QueryParam("minpins")
-	// max := c.QueryParam("maxpins")
-	// // // if min != "" && max != "" && min > max {
-	// // // 	return echo.NewHTTPError(http.StatusBadRequest)
-	// // // }
-	// templates = model.ExtractFromTemplatesBasedOnTemplatePins(templates, max, min)
-	// // // second sort with query
-	// sortmethod := c.QueryParam("sort")
-	// switch sortmethod {
-	// case "first_shared_at":
-	// 	sort.Slice(templates, func(i, j int) bool {
-	// 		return templates[i].FirstSharedAt.Before(templates[j].FirstSharedAt)
-	// 	})
-	// case "shared_at":
-	// 	sort.Slice(templates, func(i, j int) bool {
-	// 		return templates[i].SharedAt.Before(templates[j].SharedAt)
-	// 	})
-	// }
-
 	return echo.NewHTTPError(http.StatusOK, templates)
 }
 
@@ -101,8 +101,44 @@ func getMyTemplates(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	var max int
+	if c.QueryParam("maxpins") != "" {
+		max, err = strconv.Atoi(c.QueryParam("maxpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if max <= 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("maxpins can't be 0 or negative number"))
+		}
+	}
+	var min int
+	if c.QueryParam("minpins") != "" {
+		min, err = strconv.Atoi(c.QueryParam("minpins"))
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusBadRequest, err)
+		}
+		if min < 0 {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("minpins can't be negative number"))
+		}
+	}
+	if max < min && max != 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid pins query"))
+	}
+	sort := c.QueryParam("sort")
+	if sort != "" && sort != "updated_at" && sort != "-updated_at" {
+		return echo.NewHTTPError(http.StatusBadRequest, errors.New("invalid sort query"))
+	}
+
+	requestQuery := model.RequestQuery{
+		Sort: sort,
+		MaxEmbededPins: max,
+		MinEmbededPins: min,
+	}
+
 	ctx := c.Request().Context()
-	templates, err := model.GetMyTemplates(ctx, userID)
+	templates, err := model.GetMyTemplates(ctx, userID, requestQuery)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -188,8 +224,9 @@ func postTemplate(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_pins := len(req.Pins)
 
-	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, path)
+	templateID, err := model.CreateTemplate(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, number_of_pins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -211,6 +248,7 @@ func postTemplate(c echo.Context) error {
 	if *req.CreatedBy != userID {
 		err = model.RecordTemplateSavingUser(ctx, *req.OriginalID, userID)
 		if err != nil {
+			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 	}
@@ -258,13 +296,14 @@ func putTemplate(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
+	number_of_pins := len(req.Pins)
 
 	unupdatedPath, err := model.GetTemplateImagePath(ctx, templateID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.UpdateTemplate(ctx, templateID, req.Name, path)
+	err = model.UpdateTemplate(ctx, templateID, req.Name, number_of_pins, path)
 	if err != nil {
 		c.Logger().Error(err)
 		return generateEchoError(err)

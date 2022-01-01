@@ -2,6 +2,8 @@ package model
 
 import (
 	"context"
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,26 +17,43 @@ type Palace struct {
 	Image         string       `json:"image" db:"image"`
 	EmbededPins   []EmbededPin `json:"embededPins"`
 	Share         bool         `json:"share" db:"share"`
+	SavedCount    int          `json:"savedCount" db:"savedCount"`
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
-	SavedCount    int          `json:"savedCount"`
 	CreaterName   string       `json:"createrName"`
 }
 
-func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
+type RequestQuery struct {
+	Sort           string
+	MaxEmbededPins int
+	MinEmbededPins int
+}
+
+func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace, error) {
+	var queryCondition string
+	if requestQuery.MaxEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins <= " + strconv.Itoa(requestQuery.MaxEmbededPins)
+	}
+	if requestQuery.MinEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins >= " + strconv.Itoa(requestQuery.MinEmbededPins)
+	}
+	if requestQuery.Sort == "first_shared_at" || requestQuery.Sort == "" {
+		queryCondition += " ORDER BY firstshared_at DESC"
+	} else if requestQuery.Sort == "shared_at" {
+		queryCondition += " ORDER BY shared_at DESC"
+	} else if requestQuery.Sort == "savedCount" {
+		queryCondition += " ORDER BY savedCount DESC"
+	} else {
+		return nil, errors.New("invalid sort query")
+	}
+
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, shared_at, firstshared_at FROM palaces WHERE share=true")
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true" + queryCondition)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, palace := range palaces {
-		savedCount, err := GetPalaceSavedCount(ctx, palace.ID)
-		if err != nil {
-			return nil, err
-		}
-		palace.SavedCount = *savedCount
-
 		createrName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
@@ -45,20 +64,29 @@ func GetSharedPalaces(ctx context.Context) ([]*Palace, error) {
 	return palaces, nil
 }
 
-func GetMyPalaces(ctx context.Context, userID uuid.UUID) ([]*Palace, error) {
+func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQuery) ([]*Palace, error) {
+	var queryCondition string
+	if requestQuery.MaxEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins <= " + strconv.Itoa(requestQuery.MaxEmbededPins)
+	}
+	if requestQuery.MinEmbededPins > 0 {
+		queryCondition += " AND number_of_embededPins >= " + strconv.Itoa(requestQuery.MinEmbededPins)
+	}
+	if requestQuery.Sort == "updated_at" || requestQuery.Sort == "" {
+		queryCondition += " ORDER BY updated_at DESC"
+	} else if requestQuery.Sort == "-updated_at" {
+		queryCondition += " ORDER BY updated_at ASC"
+	} else {
+		return nil, errors.New("invalid sort query")
+	}
+	
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share FROM palaces WHERE heldBy=? ", userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? " + queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, palace := range palaces {
-		savedCount, err := GetPalaceSavedCount(ctx, palace.ID)
-		if err != nil {
-			return nil, err
-		}
-		palace.SavedCount = *savedCount
-
 		createrName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
@@ -91,20 +119,20 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	return &palace, nil
 }
 
-func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, path string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, number_of_embededPins int, path string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
 	if originalID == nil {
 		originalID = &palaceID
 	}
 	date := time.Now()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, path, date, date)
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, number_of_embededPins, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, number_of_embededPins, path, date, date)
 	if err != nil {
 		return nil, err
 	}
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, image string) error {
 	var count int
 	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
@@ -115,7 +143,7 @@ func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, image s
 		return ErrNotFound
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, image=?, updated_at=? WHERE id=? ", name, image, date, palaceID)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=? WHERE id=? ", name, number_of_embededPins, image, date, palaceID)
 	if err != nil {
 		return err
 	}
@@ -195,6 +223,16 @@ func RecordPalaceSavingUser(ctx context.Context, palaceID, userID uuid.UUID) err
 	}
 
 	_, err = db.ExecContext(ctx, "INSERT INTO palace_user (palaceID, userID) VALUES (?, ?) ", palaceID, userID)
+	if err != nil {
+		return err
+	}
+
+	var savedCount int
+	err = db.GetContext(ctx, &savedCount, "SELECT COUNT(*) FROM palace_user WHERE palaceID=? ", palaceID)
+	if err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET savedCount=? WHERE id=? ", savedCount, palaceID)
 	if err != nil {
 		return err
 	}
