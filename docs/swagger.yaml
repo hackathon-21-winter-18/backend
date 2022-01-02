@@ -10,6 +10,7 @@ tags:
   - name: oauth
   - name: palaces
   - name: templates
+  - name: notices
 paths:
   /oauth/signup:
     post:
@@ -265,6 +266,17 @@ paths:
       responses:
         200:
           description: OK
+  /notices:
+    get:
+      tags:
+        - notices
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notices"
 components:
   parameters:
     sortQuery:
@@ -324,6 +336,8 @@ components:
           format: uuid
         name:
           type: string
+        unreadNotices:
+          type: integer
     Palaces:
       type: array
       items:
@@ -488,6 +502,9 @@ components:
       properties:
         share:
           type: boolean
+        createdBy:
+          type: string
+          format: uuid
     SharedPalaces:
       type: array
       items:
@@ -556,3 +573,18 @@ components:
         id: 
           type: string
           format: uuid
+    Notices:
+      type: array
+      items:
+        $ref: "#/components/schemas/Notice"
+    Notice:
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
+        read:
+          type: boolean
+          description: 未読か既読か
+        content:
+          type: string
