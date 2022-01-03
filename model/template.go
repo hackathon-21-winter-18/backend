@@ -15,12 +15,14 @@ type Template struct {
 	Name          string    `json:"name" db:"name"`
 	CreatedBy     uuid.UUID `json:"createdBy" db:"createdBy"`
 	Image         string    `json:"image" db:"image"`
+	HeldBy        uuid.UUID `db:"heldBy"`
 	Pins          []Pin     `json:"pins"`
 	Share         bool      `json:"share" db:"share"`
 	SharedAt      time.Time `db:"shared_at"`
 	FirstSharedAt time.Time `db:"firstshared_at"`
 	SavedCount    int       `json:"savedCount" db:"savedCount"`
 	CreaterName   string    `json:"createrName"`
+	EditerName    string    `json:"editerName"`
 }
 
 func GetSharedTemplates(ctx context.Context, requestQuery RequestQuery) ([]*Template, error) {
@@ -42,17 +44,23 @@ func GetSharedTemplates(ctx context.Context, requestQuery RequestQuery) ([]*Temp
 	}
 
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, savedCount, shared_at, firstshared_at FROM templates WHERE share=true" + queryCondition)
+	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, heldBy, share, savedCount, shared_at, firstshared_at FROM templates WHERE share=true"+queryCondition)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, template := range templates {		
+	for _, template := range templates {
 		createrName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
 		template.CreaterName = createrName
+
+		editerName, err := GetMe(ctx, template.HeldBy.String())
+		if err != nil {
+			return nil, err
+		}
+		template.EditerName = editerName
 	}
 
 	return templates, nil
@@ -73,9 +81,9 @@ func GetMyTemplates(ctx context.Context, userID uuid.UUID, requestQuery RequestQ
 	} else {
 		return nil, errors.New("invalid sort query")
 	}
-	
+
 	var templates []*Template
-	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, savedCount FROM templates WHERE heldBy=? " + queryCondition, userID)
+	err := db.SelectContext(ctx, &templates, "SELECT id, originalID, name, createdBy, image, share, savedCount FROM templates WHERE heldBy=? "+queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}

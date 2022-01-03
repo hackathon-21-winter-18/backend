@@ -15,12 +15,14 @@ type Palace struct {
 	Name          string       `json:"name" db:"name"`
 	CreatedBy     uuid.UUID    `json:"createdBy" db:"createdBy"`
 	Image         string       `json:"image" db:"image"`
+	HeldBy        uuid.UUID    `db:"heldBy"`
 	EmbededPins   []EmbededPin `json:"embededPins"`
 	Share         bool         `json:"share" db:"share"`
 	SavedCount    int          `json:"savedCount" db:"savedCount"`
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
 	CreaterName   string       `json:"createrName"`
+	EditerName    string       `json:"editerName"`
 }
 
 type RequestQuery struct {
@@ -48,7 +50,7 @@ func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace
 	}
 
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true" + queryCondition)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, heldBy, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true"+queryCondition)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +61,12 @@ func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace
 			return nil, err
 		}
 		palace.CreaterName = createrName
+
+		editerName, err := GetMe(ctx, palace.HeldBy.String())
+		if err != nil {
+			return nil, err
+		}
+		palace.EditerName = editerName
 	}
 
 	return palaces, nil
@@ -79,9 +87,9 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQue
 	} else {
 		return nil, errors.New("invalid sort query")
 	}
-	
+
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? " + queryCondition, userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? "+queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}
