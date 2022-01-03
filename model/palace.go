@@ -15,14 +15,14 @@ type Palace struct {
 	Name          string       `json:"name" db:"name"`
 	CreatedBy     uuid.UUID    `json:"createdBy" db:"createdBy"`
 	Image         string       `json:"image" db:"image"`
-	HeldBy        uuid.UUID    `db:"heldBy"`
+	HeldBy        uuid.UUID    `json:"heldBy" db:"heldBy"`
 	EmbededPins   []EmbededPin `json:"embededPins"`
 	Share         bool         `json:"share" db:"share"`
 	SavedCount    int          `json:"savedCount" db:"savedCount"`
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
-	CreaterName   string       `json:"createrName"`
-	EditerName    string       `json:"editerName"`
+	CreatorName   string       `json:"creatorName"`
+	EditorName    string       `json:"editorName"`
 }
 
 type RequestQuery struct {
@@ -56,17 +56,17 @@ func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace
 	}
 
 	for _, palace := range palaces {
-		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		palace.CreaterName = createrName
+		palace.CreatorName = creatorName
 
-		editerName, err := GetMe(ctx, palace.HeldBy.String())
+		editorName, err := GetMe(ctx, palace.HeldBy.String())
 		if err != nil {
 			return nil, err
 		}
-		palace.EditerName = editerName
+		palace.EditorName = editorName
 	}
 
 	return palaces, nil
@@ -95,11 +95,11 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQue
 	}
 
 	for _, palace := range palaces {
-		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		palace.CreaterName = createrName
+		palace.CreatorName = creatorName
 	}
 
 	return palaces, nil
@@ -118,11 +118,11 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	}
 	palace.SavedCount = *savedCount
 
-	createrName, err := GetMe(ctx, palace.CreatedBy.String())
+	creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 	if err != nil {
 		return nil, err
 	}
-	palace.CreaterName = createrName
+	palace.CreatorName = creatorName
 
 	return &palace, nil
 }

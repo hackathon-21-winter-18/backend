@@ -15,14 +15,14 @@ type Template struct {
 	Name          string    `json:"name" db:"name"`
 	CreatedBy     uuid.UUID `json:"createdBy" db:"createdBy"`
 	Image         string    `json:"image" db:"image"`
-	HeldBy        uuid.UUID `db:"heldBy"`
+	HeldBy        uuid.UUID `json:"heldBy" db:"heldBy"`
 	Pins          []Pin     `json:"pins"`
 	Share         bool      `json:"share" db:"share"`
 	SharedAt      time.Time `db:"shared_at"`
 	FirstSharedAt time.Time `db:"firstshared_at"`
 	SavedCount    int       `json:"savedCount" db:"savedCount"`
-	CreaterName   string    `json:"createrName"`
-	EditerName    string    `json:"editerName"`
+	CreatorName   string    `json:"creatorName"`
+	EditorName    string    `json:"editorName"`
 }
 
 func GetSharedTemplates(ctx context.Context, requestQuery RequestQuery) ([]*Template, error) {
@@ -50,17 +50,17 @@ func GetSharedTemplates(ctx context.Context, requestQuery RequestQuery) ([]*Temp
 	}
 
 	for _, template := range templates {
-		createrName, err := GetMe(ctx, template.CreatedBy.String())
+		creatorName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		template.CreaterName = createrName
+		template.CreatorName = creatorName
 
-		editerName, err := GetMe(ctx, template.HeldBy.String())
+		editorName, err := GetMe(ctx, template.HeldBy.String())
 		if err != nil {
 			return nil, err
 		}
-		template.EditerName = editerName
+		template.EditorName = editorName
 	}
 
 	return templates, nil
@@ -95,11 +95,11 @@ func GetMyTemplates(ctx context.Context, userID uuid.UUID, requestQuery RequestQ
 		}
 		template.SavedCount = *savedCount
 
-		createrName, err := GetMe(ctx, template.CreatedBy.String())
+		creatorName, err := GetMe(ctx, template.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		template.CreaterName = createrName
+		template.CreatorName = creatorName
 	}
 
 	return templates, nil
@@ -118,11 +118,11 @@ func GetTemplate(ctx context.Context, templateID uuid.UUID) (*Template, error) {
 	}
 	template.SavedCount = *savedCount
 
-	createrName, err := GetMe(ctx, template.CreatedBy.String())
+	creatorName, err := GetMe(ctx, template.CreatedBy.String())
 	if err != nil {
 		return nil, err
 	}
-	template.CreaterName = createrName
+	template.CreatorName = creatorName
 
 	return &template, nil
 }
