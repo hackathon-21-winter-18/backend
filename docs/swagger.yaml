@@ -594,3 +594,6 @@ components:
           description: 未読か既読か
         content:
           type: string
+        created_at:
+          type: string
+          format: date-time
