@@ -8,15 +8,17 @@ import (
 )
 
 type Notice struct {
-	ID        uuid.UUID `json:"id" db:"id"`
-	Content   string    `json:"content" db:"content"`
-	Checked   bool      `json:"checked" db:"checked"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	ID         uuid.UUID `json:"id" db:"id"`
+	Content    string    `json:"content" db:"content"`
+	Checked    bool      `json:"checked" db:"checked"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
+	PalaceID   uuid.UUID `json:"palaceID" db:"palaceID"`
+	TemplateID uuid.UUID `json:"templateID" db:"templateID"`
 }
 
 func GetNotices(ctx context.Context, userID uuid.UUID) ([]Notice, error) {
 	var notices []Notice
-	err := db.SelectContext(ctx, &notices, "SELECT id, content, checked, created_at FROM notices WHERE userID=? ORDER BY created_at DESC ", userID)
+	err := db.SelectContext(ctx, &notices, "SELECT id, content, checked, created_at, palaceID, templateID FROM notices WHERE userID=? ORDER BY created_at DESC ", userID)
 	if err != nil {
 		//TODO return userID not found
 		return nil, err
@@ -38,6 +40,8 @@ func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, 
 	noticeID := uuid.New()
 	var firstshared bool
 	var err error
+	var palaceID *uuid.UUID
+	var templateID *uuid.UUID
 	content := "公開したものを元に他のユーザーが新たな"
 
 	if palaceIssued {
@@ -49,6 +53,7 @@ func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, 
 		if firstshared {
 			return nil
 		}
+		palaceID = &objectID
 		content += "宮殿"
 	} else {
 		err = db.GetContext(ctx, &firstshared, "SELECT firstshared FROM templates WHERE id=? ", objectID)
@@ -59,12 +64,13 @@ func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, 
 		if firstshared {
 			return nil
 		}
+		templateID = &objectID
 		content += "テンプレート"
 	}
 	content += "を公開しました。"
 
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "INSERT INTO notices (id, userID, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ", noticeID, createrID, content, date, date)
+	_, err = db.ExecContext(ctx, "INSERT INTO notices (id, userID, content, created_at, updated_at, palaceID, templateID) VALUES (?, ?, ?, ?, ?, ?, ?) ", noticeID, createrID, content, date, date, palaceID, templateID)
 	if err != nil {
 		return err
 	}
