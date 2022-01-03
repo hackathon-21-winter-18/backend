@@ -71,3 +71,14 @@ func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, 
 
 	return nil
 }
+
+func GetCountOfUnreadNotices(ctx context.Context, userID uuid.UUID) (int, error) {
+	var count int
+	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM notices WHERE userID=? AND read=fause ", userID)
+	if err != nil {
+		//TODO return userID not found
+		return 0, err
+	}
+
+	return count, nil
+}

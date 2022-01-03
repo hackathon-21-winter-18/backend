@@ -22,8 +22,9 @@ type LoginResponse struct {
 }
 
 type Me struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	UnreadNotices int    `json:"unreadNotices"`
 }
 
 func postSignUp(c echo.Context) error {
@@ -100,8 +101,20 @@ func getWhoamI(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	userIDinUUID, err := uuid.Parse(userID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	unreadNotices, err := model.GetCountOfUnreadNotices(ctx, userIDinUUID)
+	if err != nil {
+		c.Logger().Error(err)
+		return generateEchoError(err)
+	}
+
 	return echo.NewHTTPError(http.StatusOK, Me{
 		ID:   userID,
 		Name: name,
+		UnreadNotices: unreadNotices,
 	})
 }
