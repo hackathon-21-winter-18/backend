@@ -502,7 +502,7 @@ components:
       properties:
         share:
           type: boolean
-        createdBy:
+        noticeTo:
           type: string
           format: uuid
     SharedPalaces:
