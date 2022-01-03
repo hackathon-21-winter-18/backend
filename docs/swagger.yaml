@@ -536,9 +536,10 @@ components:
         creatorName:
           type: string
           description: 作成者のユーザー名
-        editorID:
+        heldBy:
           type: string
           format: uuid
+          description: editorのIDともいう
         createdBy:
           type: string
           format: uuid
@@ -573,9 +574,10 @@ components:
         creatorName:
           type: string
           description: 作成者のユーザー名
-        editorID:
+        heldBy:
           type: string
           format: uuid
+          description: editorのIDともいう
         createdBy:
           type: string
           format: uuid
