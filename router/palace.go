@@ -416,6 +416,14 @@ func sharePalace(c echo.Context) error {
 		return generateEchoError(err)
 	}
 
+	if userID != req.CreatedBy && req.Share {
+		err = model.CreateNotice(ctx, req.CreatedBy, palaceID, true)
+		if err != nil {
+			c.Logger().Error(err)
+			return generateEchoError(err)
+		}
+	}
+	
 	err = model.SharePalace(ctx, palaceID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

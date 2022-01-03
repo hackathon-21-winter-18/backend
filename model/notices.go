@@ -24,7 +24,7 @@ func GetNotices(ctx context.Context, userID uuid.UUID) ([]Notice, error) {
 
 	for _, notice := range notices {
 		if !notice.Read {
-			_, err = db.ExecContext(ctx, "UPDATE notices SET read=? ", true)
+			_, err = db.ExecContext(ctx, "UPDATE notices SET read=?, updated_at=? ", true, time.Now())
 			if err != nil {
 				return nil, err
 			}
@@ -36,14 +36,35 @@ func GetNotices(ctx context.Context, userID uuid.UUID) ([]Notice, error) {
 
 func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, palaceIssued bool) error {
 	noticeID := uuid.New()
+	var firstshared bool
+	var err error
 	content := "公開したものを元に他のユーザーが新たな"
+
 	if palaceIssued {
+		err = db.GetContext(ctx, &firstshared, "SELECT firstshared FROM palaces WHERE id=? ", objectID)
+		if err != nil {
+			//TODO return ID not found
+			return err
+		}
+		if firstshared {
+			return nil
+		}
 		content += "宮殿"
 	} else {
+		err = db.GetContext(ctx, &firstshared, "SELECT firstshared FROM templates WHERE id=? ", objectID)
+		if err != nil {
+			//TODO return ID not found
+			return err
+		}
+		if firstshared {
+			return nil
+		}
 		content += "テンプレート"
 	}
 	content += "を公開しました。"
-	_, err := db.ExecContext(ctx, "INSERT INTO notices (id, userID, content) VALUES (?, ?, ?) ", noticeID, createrID, content)
+
+	date := time.Now()
+	_, err = db.ExecContext(ctx, "INSERT INTO notices (id, userID, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ", noticeID, createrID, content, date, date)
 	if err != nil {
 		return err
 	}

@@ -87,8 +87,8 @@ CREATE TABLE IF NOT EXISTS `notices` (
   `userID` char(36) NOT NULL,
   `content` varchar(400) NOT NULL,
   `read` boolean DEFAULT False,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTANP,
-  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTANP,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   FOREIGN KEY (`userID`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

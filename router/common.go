@@ -3,7 +3,8 @@ package router
 import "github.com/google/uuid"
 
 type Share struct {
-	Share bool `json:"share"`
+	Share     bool      `json:"share"`
+	CreatedBy uuid.UUID `json:"createdBy"`
 }
 
 type ID struct {
