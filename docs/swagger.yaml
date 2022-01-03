@@ -597,3 +597,9 @@ components:
         created_at:
           type: string
           format: date-time
+        palaceID: 
+          type: string
+          format: uuid
+        templateID:
+          type: string
+          format: uuid
