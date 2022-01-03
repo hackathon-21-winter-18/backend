@@ -589,7 +589,7 @@ components:
         id: 
           type: string
           format: uuid
-        read:
+        checked:
           type: boolean
           description: 未読か既読か
         content:
