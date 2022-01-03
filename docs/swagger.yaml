@@ -530,12 +530,15 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        editerName:
+        editorName:
           type: string
           description: 編集者の名前。実際はheldByの名前
-        createrName:
+        creatorName:
           type: string
           description: 作成者のユーザー名
+        editorID:
+          type: string
+          format: uuid
         createdBy:
           type: string
           format: uuid
@@ -564,12 +567,15 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        editerName:
+        editorName:
           type: string
           description: 編集者の名前。実際はheldByの名前
-        createrName:
+        creatorName:
           type: string
           description: 作成者のユーザー名
+        editorID:
+          type: string
+          format: uuid
         createdBy:
           type: string
           format: uuid
