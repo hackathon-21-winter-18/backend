@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `notices` (
   `id` char(36) NOT NULL,
   `userID` char(36) NOT NULL,
   `content` varchar(400) NOT NULL,
-  `read` boolean DEFAULT False,
+  `checked` boolean DEFAULT False,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),

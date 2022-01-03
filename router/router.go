@@ -62,6 +62,11 @@ func SetRouting(sess sess.Session) {
 			apiTemplages.DELETE("/:templateID", deleteTemplate)
 			apiTemplages.PUT("/share/:templateID", shareTemplate)
 		}
+
+		apiNotices := api.Group("/notices", userAuthMiddleware)
+		{
+			apiNotices.GET("", getNotices)
+		}
 	}
 
 	err := e.Start(":8080")

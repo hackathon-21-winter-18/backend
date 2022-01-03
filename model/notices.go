@@ -10,21 +10,21 @@ import (
 type Notice struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	Content   string    `json:"content" db:"content"`
-	Read      bool      `json:"read" db:"read"`
+	Checked   bool      `json:"checked" db:"checked"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 func GetNotices(ctx context.Context, userID uuid.UUID) ([]Notice, error) {
 	var notices []Notice
-	err := db.SelectContext(ctx, &notices, "SELECT id, content, read, created_at FROM notices WhERE userID=? ORDER BY createdBy DESC ", userID)
+	err := db.SelectContext(ctx, &notices, "SELECT id, content, checked, created_at FROM notices WHERE userID=? ORDER BY created_at DESC ", userID)
 	if err != nil {
 		//TODO return userID not found
 		return nil, err
 	}
 
 	for _, notice := range notices {
-		if !notice.Read {
-			_, err = db.ExecContext(ctx, "UPDATE notices SET read=?, updated_at=? ", true, time.Now())
+		if !notice.Checked {
+			_, err = db.ExecContext(ctx, "UPDATE notices SET checked=?, updated_at=? WHERE id=? ", true, time.Now(), notice.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -74,7 +74,7 @@ func CreateNotice(ctx context.Context, createrID uuid.UUID, objectID uuid.UUID, 
 
 func GetCountOfUnreadNotices(ctx context.Context, userID uuid.UUID) (int, error) {
 	var count int
-	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM notices WHERE userID=? AND read=fause ", userID)
+	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM notices WHERE userID=? AND checked=False ", userID)
 	if err != nil {
 		//TODO return userID not found
 		return 0, err
