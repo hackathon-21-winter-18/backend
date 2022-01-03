@@ -406,7 +406,7 @@ func shareTemplate(c echo.Context) error {
 		return generateEchoError(err)
 	}
 
-	if userID != req.CreatedBy && req.Share {
+	if req.CreatedBy != uuid.Nil && userID != req.CreatedBy && req.Share {
 		err = model.CreateNotice(ctx, req.CreatedBy, templateID, false)
 		if err != nil {
 			c.Logger().Error(err)
