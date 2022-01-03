@@ -416,7 +416,7 @@ func sharePalace(c echo.Context) error {
 		return generateEchoError(err)
 	}
 
-	if userID != req.CreatedBy && req.Share {
+	if req.CreatedBy != uuid.Nil && userID != req.CreatedBy && req.Share {
 		err = model.CreateNotice(ctx, req.CreatedBy, palaceID, true)
 		if err != nil {
 			c.Logger().Error(err)
