@@ -23,6 +23,7 @@ services:
       - PMA_HOST=db
       - PMA_USER=root
       - PMA_PASSWORD=password
+    env_file: .env
     links:
       - db
     ports:
