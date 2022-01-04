@@ -82,3 +82,16 @@ CREATE TABLE IF NOT EXISTS `template_user` (
   FOREIGN KEY (`userID`) REFERENCES users(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `notices` (
+  `id` char(36) NOT NULL,
+  `userID` char(36) NOT NULL,
+  `content` varchar(400) NOT NULL,
+  `checked` boolean DEFAULT False,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `palaceID` char(36) NULL,
+  `templateID` char(36) NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`userID`) REFERENCES users(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

@@ -20,6 +20,7 @@ func userAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusUnauthorized)
 		}
+		//TODO これいらなそう？
 		c.Set("userID", userID)
 
 		return next(c)

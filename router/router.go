@@ -39,6 +39,8 @@ func SetRouting(sess sess.Session) {
 			apiOauth.POST("/login", postLogin)
 			apiOauth.POST("/logout", postLogout, userAuthMiddleware)
 			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
+			// apiOauth.GET("/genpkce", generatePKCE)
+			// apiOauth.GET("/callback", authCallback)
 		}
 
 		apiPalaces := api.Group("/palaces", userAuthMiddleware)
@@ -61,6 +63,11 @@ func SetRouting(sess sess.Session) {
 			apiTemplages.PUT("/:templateID", putTemplate)
 			apiTemplages.DELETE("/:templateID", deleteTemplate)
 			apiTemplages.PUT("/share/:templateID", shareTemplate)
+		}
+
+		apiNotices := api.Group("/notices", userAuthMiddleware)
+		{
+			apiNotices.GET("", getNotices)
 		}
 	}
 

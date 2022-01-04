@@ -15,12 +15,14 @@ type Palace struct {
 	Name          string       `json:"name" db:"name"`
 	CreatedBy     uuid.UUID    `json:"createdBy" db:"createdBy"`
 	Image         string       `json:"image" db:"image"`
+	HeldBy        uuid.UUID    `json:"heldBy" db:"heldBy"`
 	EmbededPins   []EmbededPin `json:"embededPins"`
 	Share         bool         `json:"share" db:"share"`
 	SavedCount    int          `json:"savedCount" db:"savedCount"`
 	SharedAt      time.Time    `db:"shared_at"`
 	FirstSharedAt time.Time    `db:"firstshared_at"`
-	CreaterName   string       `json:"createrName"`
+	CreatorName   string       `json:"creatorName"`
+	EditorName    string       `json:"editorName"`
 }
 
 type RequestQuery struct {
@@ -48,17 +50,23 @@ func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace
 	}
 
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true" + queryCondition)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, heldBy, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true"+queryCondition)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, palace := range palaces {
-		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		palace.CreaterName = createrName
+		palace.CreatorName = creatorName
+
+		editorName, err := GetMe(ctx, palace.HeldBy.String())
+		if err != nil {
+			return nil, err
+		}
+		palace.EditorName = editorName
 	}
 
 	return palaces, nil
@@ -79,19 +87,19 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQue
 	} else {
 		return nil, errors.New("invalid sort query")
 	}
-	
+
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? " + queryCondition, userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? "+queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, palace := range palaces {
-		createrName, err := GetMe(ctx, palace.CreatedBy.String())
+		creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 		if err != nil {
 			return nil, err
 		}
-		palace.CreaterName = createrName
+		palace.CreatorName = creatorName
 	}
 
 	return palaces, nil
@@ -110,11 +118,11 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	}
 	palace.SavedCount = *savedCount
 
-	createrName, err := GetMe(ctx, palace.CreatedBy.String())
+	creatorName, err := GetMe(ctx, palace.CreatedBy.String())
 	if err != nil {
 		return nil, err
 	}
-	palace.CreaterName = createrName
+	palace.CreatorName = creatorName
 
 	return &palace, nil
 }
