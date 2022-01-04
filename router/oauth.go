@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -21,7 +22,6 @@ import (
 const (
 	sessionCodeVerifierKey = "code_verifier"
 	// sessionUserKey         = "user"
-	redirect_url        = "http://localhost:8080/api/oauth/callback"
 	authEndPoint        = "https://accounts.google.com/o/oauth2/v2/auth?"
 	codeChallengeMethod = "S256"
 )
@@ -159,7 +159,7 @@ func generatePKCE(c echo.Context) error {
 	values.Add("response_type", "code")
 	values.Add("client_id", service.PalamoClientID)
 	values.Add("scope", service.OauthScope)
-	values.Add("redirect_uri", redirect_url)
+	values.Add("redirect_uri", service.Redirect_uri)
 	values.Add("code_challenge_method", codeChallengeMethod)
 	values.Add("code_challenge", encoder.EncodeToString(codeVerifierHash[:]))
 
@@ -187,14 +187,16 @@ func authCallback(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	email, err := service.FetchGoogleEmailAddress(res.AccessToken)
+	body, err := service.FetchGoogleEmailAddress(res.AccessToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
+	log.Print(body)
+	// var data map[string]interface{}
+	// json.Unmarshal(body, &data)
 
-
-	return echo.NewHTTPError(http.StatusOK)
+	return echo.NewHTTPError(http.StatusOK, body)
 }
 
 var randSrcPool = sync.Pool{

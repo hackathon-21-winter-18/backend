@@ -39,8 +39,8 @@ func SetRouting(sess sess.Session) {
 			apiOauth.POST("/login", postLogin)
 			apiOauth.POST("/logout", postLogout, userAuthMiddleware)
 			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
-			apiOauth.GET("/genpkce", generatePKCE)
-			apiOauth.GET("/callback", authCallback)
+			// apiOauth.GET("/genpkce", generatePKCE)
+			// apiOauth.GET("/callback", authCallback)
 		}
 
 		apiPalaces := api.Group("/palaces", userAuthMiddleware)
