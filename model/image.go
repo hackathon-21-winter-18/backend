@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
 	"os"
 
 	"github.com/google/uuid"
@@ -64,18 +63,20 @@ func GetTemplateImagePath(ctx context.Context, templateID uuid.UUID) (string, er
 }
 
 func CreatePathName(ctx context.Context, base64 string) (string, error) { // go run main.goをやりなおしても値は変わらない
-	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	// letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-	b := make([]byte, 25)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
+	// b := make([]byte, 25)
+	// _, err := rand.Read(b)
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	var result string
-	for _, v := range b {
-		result += string(letters[int(v)%len(letters)])
-	}
+	// var result string
+	// for _, v := range b {
+	// 	result += string(letters[int(v)%len(letters)])
+	// }
+	result := RandAlphabetAndNumberString(25)
+	var err error
 
 	var extension string
 	head5 := string([]rune(base64)[:5])

@@ -1,5 +1,5 @@
-.PHONY: up -b
-up -b:
+.PHONY: up-b
+up-b:
 	@docker-compose up --build
 
 .PHONY: up

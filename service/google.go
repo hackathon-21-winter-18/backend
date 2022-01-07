@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -51,6 +53,7 @@ func RequestAccessToken(code, codeVerifier string) (Authority, error) {
 	values.Set("client_secret", palamoClientSecret)
 	values.Set("code", code)
 	values.Set("redirect_uri", Redirect_uri)
+	// values.Set("EmailAddress", "user38.kounosuke@gmail.com")
 	values.Set("code_verifier", codeVerifier)
 
 	reqBody := strings.NewReader(values.Encode())
@@ -64,6 +67,8 @@ func RequestAccessToken(code, codeVerifier string) (Authority, error) {
 	if err != nil {
 		return Authority{}, err
 	} else if res.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(res.Body)
+		log.Printf("token response : %s", string(body))
 		return Authority{}, fmt.Errorf("failed to acquire access token")
 	}
 
