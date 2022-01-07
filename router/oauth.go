@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -138,6 +137,7 @@ func getWhoamI(c echo.Context) error {
 func generatePKCE(c echo.Context) error {
 	sess, err := session.Get("sessions", c)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
@@ -152,6 +152,7 @@ func generatePKCE(c echo.Context) error {
 
 	err = sess.Save(c.Request(), c.Response())
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
@@ -174,27 +175,26 @@ func authCallback(c echo.Context) error {
 
 	sess, err := session.Get("sessions", c)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	codeVerifier, ok := sess.Values[sessionCodeVerifierKey].(string)
 	if !ok {
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get code_verifier")
 	}
 
 	res, err := service.RequestAccessToken(code, codeVerifier)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	body, err := service.FetchGoogleEmailAddress(res.AccessToken)
+	body, err := service.FetchGoogleUser(res.AccessToken)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-
-	log.Print(body)
-	// var data map[string]interface{}
-	// json.Unmarshal(body, &data)
 
 	return echo.NewHTTPError(http.StatusOK, body)
 }
