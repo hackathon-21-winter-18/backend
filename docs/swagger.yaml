@@ -11,49 +11,59 @@ tags:
   - name: palaces
   - name: templates
   - name: notices
+  - name: user
 paths:
-  /oauth/signup:
-    post:
-      tags:
+  # /oauth/signup:
+  #   post:
+  #     tags:
+  #       - oauth
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: "#/components/schemas/LoginRequest"
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/LoginResponse"
+  #       400:
+  #         description: 不正なリクエスト
+  # /oauth/login:
+  #   post:
+  #     tags:
+  #       - oauth
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: "#/components/schemas/LoginRequest"
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/LoginResponse"
+  #       400:
+  #         description: 不正なリクエスト
+  #       403:
+  #         description: パスワードが不一致
+  #       404:
+  #         description: ユーザーが見つからない
+  /oauth/genpkce:
+    get:
+      tags: 
         - oauth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
       responses:
         200:
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-        400:
-          description: 不正なリクエスト
-  /oauth/login:
-    post:
-      tags:
-        - oauth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-        400:
-          description: 不正なリクエスト
-        403:
-          description: パスワードが不一致
-        404:
-          description: ユーザーが見つからない
+
+
   /oauth/logout:
     post:
       tags:
@@ -277,6 +287,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Notices"
+  /user/name:
+    put:
+      tags:
+        - user
+      requestBody: 
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/putUserRequest"
+      responses:
+        200:
+          description: OK
 components:
   parameters:
     sortQuery:
@@ -611,3 +633,8 @@ components:
         templateID:
           type: string
           format: uuid
+    putUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
