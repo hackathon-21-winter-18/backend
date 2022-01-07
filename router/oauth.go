@@ -20,9 +20,9 @@ import (
 
 const (
 	sessionCodeVerifierKey = "code_verifier"
-	// sessionUserKey         = "user"
-	authEndPoint        = "https://accounts.google.com/o/oauth2/v2/auth?"
-	codeChallengeMethod = "S256"
+	sessionUserKey         = "user"
+	authEndPoint           = "https://accounts.google.com/o/oauth2/v2/auth?"
+	codeChallengeMethod    = "S256"
 )
 
 // 旧ログインシステム
@@ -197,6 +197,7 @@ func authCallback(c echo.Context) error {
 	}
 
 	return echo.NewHTTPError(http.StatusOK, body)
+	// c.Redirect(http.StatusSeeOther, "/")
 }
 
 var randSrcPool = sync.Pool{

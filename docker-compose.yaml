@@ -7,7 +7,7 @@ services:
       # - ./mysql/data:/var/lib/mysql
     container_name: hack_mysql
     image: hack_mysql
-    command: bash -c 'usermod -o -u $LINUX_MYSQL_UID mysql; groupmod -o -g $LINUX_MYSQL_GID mysql; chown -R mysql:root /var/run/mysqld/ /var/log/mysql/ /var/lib/mysql/; /entrypoint.sh mysqld --user=mysql --console'
+    # command: bash -c 'usermod -o -u $LINUX_MYSQL_UID mysql; groupmod -o -g $LINUX_MYSQL_GID mysql; chown -R mysql:root /var/run/mysqld/ /var/log/mysql/ /var/lib/mysql/; /entrypoint.sh mysqld --user=mysql --console'
     environment:
         MYSQL_ROOT_PASSWORD: password
         MYSQL_DATABASE: 21hack18
@@ -23,7 +23,6 @@ services:
       - PMA_HOST=db
       - PMA_USER=root
       - PMA_PASSWORD=password
-    env_file: .env
     links:
       - db
     ports:
@@ -35,6 +34,7 @@ services:
     build: . # ビルドに使用するDockerfileがあるディレクトリ指定
     tty: true # コンテナの起動永続化
     command: "air -c .air.toml"
+    env_file: .env
     volumes:
       - .:/go/src/work # マウントディレクトリ指定
     depends_on: 

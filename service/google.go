@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -19,8 +20,8 @@ const (
 )
 
 var (
-	PalamoClientID     = "868575110926-gn5gavj0ntkmsfnfl2faj9qc896amp00.apps.googleusercontent.com"
-	palamoClientSecret = "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"
+	PalamoClientID     = os.Getenv("PALAMO_CLIENT_ID")
+	palamoClientSecret = os.Getenv("PALAMO_CLIENT_SECRET")
 )
 
 type Authority struct {
