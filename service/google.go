@@ -2,10 +2,13 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -13,13 +16,14 @@ import (
 
 const (
 	tokenEndPoint = "https://www.googleapis.com/oauth2/v4/token"
-	OauthScope    = "https://www.googleapis.com/auth/userinfo.email"
+	OauthScope    = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+	googleAPI     = "https://people.googleapis.com/v1/people/me?personFields=emailAddresses"
 	Redirect_uri  = "http://localhost:8080/api/oauth/callback"
 )
 
 var (
-	PalamoClientID     = ""
-	palamoClientSecret = ""
+	PalamoClientID     = os.Getenv("PALAMO_CLIENT_ID")
+	palamoClientSecret = os.Getenv("PALAMO_CLIENT_SECRET")
 )
 
 type Authority struct {
@@ -28,8 +32,18 @@ type Authority struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-type Email struct {
-	Address string `json:"result"`
+type GoogleUserSource struct {
+	ResourceName   string         `json:"resourceName"`
+	EmailAddresses []EmailAddress `json:"emailAddresses"`
+}
+
+type EmailAddress struct {
+	Value string `json:"value"`
+}
+
+type GoogleUser struct {
+	ID           string
+	EmailAddress string
 }
 
 func RequestAccessToken(code, codeVerifier string) (Authority, error) {
@@ -39,6 +53,7 @@ func RequestAccessToken(code, codeVerifier string) (Authority, error) {
 	values.Set("client_secret", palamoClientSecret)
 	values.Set("code", code)
 	values.Set("redirect_uri", Redirect_uri)
+	// values.Set("EmailAddress", "user38.kounosuke@gmail.com")
 	values.Set("code_verifier", codeVerifier)
 
 	reqBody := strings.NewReader(values.Encode())
@@ -52,6 +67,8 @@ func RequestAccessToken(code, codeVerifier string) (Authority, error) {
 	if err != nil {
 		return Authority{}, err
 	} else if res.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(res.Body)
+		log.Printf("token response : %s", string(body))
 		return Authority{}, fmt.Errorf("failed to acquire access token")
 	}
 
@@ -64,8 +81,8 @@ func RequestAccessToken(code, codeVerifier string) (Authority, error) {
 	return authRes, nil
 }
 
-func FetchGoogleEmailAddress(token string) (*string, error) {
-	req, err := http.NewRequest("GET", OauthScope, nil)
+func FetchGoogleUser(token string) (*GoogleUser, error) {
+	req, err := http.NewRequest("GET", googleAPI, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -75,21 +92,26 @@ func FetchGoogleEmailAddress(token string) (*string, error) {
 	if err != nil {
 		return nil, err
 	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch email address")
+		return nil, errors.New("failed to fetch email address")
 	}
 
-	// body, err := ioutil.ReadAll(res.Body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// return res.Body, nil
-	var user Email
-	if err := json.NewDecoder(res.Body).Decode(&user); err != nil {
-		log.Print("fsfasdf")
+	var userSource GoogleUserSource
+	if err := json.NewDecoder(res.Body).Decode(&userSource); err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	userID := userSource.ResourceName[7:28]
+	if len(userID) != 21 {
+		return nil, errors.New("failed to get valid userID")
+	}
+	if len(userSource.EmailAddresses) == 0 || userSource.EmailAddresses[0].Value == "" {
+		return nil, errors.New("failed to get email address")
+	}
 
+	user := GoogleUser{
+		ID:           userID,
+		EmailAddress: userSource.EmailAddresses[0].Value,
+	}
+
+	return &user, nil
 }

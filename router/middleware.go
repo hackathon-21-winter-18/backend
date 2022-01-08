@@ -15,13 +15,12 @@ func userAuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return errSessionNotFound(err)
 		}
 
-		userID := sess.Values["userID"]
+		// userID := sess.Values["userID"]
 		if sess.Values["userID"] == nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusUnauthorized)
 		}
-		//TODO これいらなそう？
-		c.Set("userID", userID)
+		// c.Set("userID", userID)
 
 		return next(c)
 	}

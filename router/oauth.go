@@ -3,94 +3,38 @@ package router
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
-	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"sync"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
 	"github.com/hackathon-21-winter-18/backend/service"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	sessionCodeVerifierKey = "code_verifier"
-	// sessionUserKey         = "user"
-	authEndPoint        = "https://accounts.google.com/o/oauth2/v2/auth?"
-	codeChallengeMethod = "S256"
+	sessionUserKey         = "user"
+	authEndPoint           = "https://accounts.google.com/o/oauth2/v2/auth?"
+	codeChallengeMethod    = "S256"
 )
 
 // 旧ログインシステム
-type LoginRequestBody struct {
-	Name     string `json:"name,omitempty"`
-	Password string `json:"password,omitempty"`
-}
+// type LoginRequestBody struct {
+// 	Name     string `json:"name,omitempty"`
+// 	Password string `json:"password,omitempty"`
+// }
 
-type LoginResponse struct {
-	ID   uuid.UUID `json:"id,omitempty"`
-	Name string    `json:"name,omitempty"`
-}
+// type LoginResponse struct {
+// 	ID   uuid.UUID `json:"id,omitempty"`
+// 	Name string    `json:"name,omitempty"`
+// }
 
 type Me struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
 	UnreadNotices int    `json:"unreadNotices"`
-}
-
-func postSignUp(c echo.Context) error {
-	var req LoginRequestBody
-	c.Bind(&req)
-
-	if req.Password == "" || req.Name == "" {
-		return c.String(http.StatusBadRequest, "invalid request")
-	}
-
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		c.Logger().Error(err)
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("bcrypt generate error: %v", err))
-	}
-
-	userID, err := model.PostSignUp(c, req.Name, hashedPass)
-	if err != nil {
-		c.Logger().Error(err)
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
-	}
-
-	res := LoginResponse{
-		ID:   *userID,
-		Name: req.Name,
-	}
-
-	return echo.NewHTTPError(http.StatusOK, res)
-}
-
-func postLogin(c echo.Context) error {
-	var req LoginRequestBody
-	c.Bind(&req)
-
-	if req.Password == "" || req.Name == "" {
-		return c.String(http.StatusBadRequest, "invalid request")
-	}
-
-	userID, err := model.PostLogin(c, req.Name, req.Password)
-	if err != nil {
-		c.Logger().Error(err)
-		return generateEchoError(err)
-	}
-
-	res := LoginResponse{
-		ID:   *userID,
-		Name: req.Name,
-	}
-
-	return echo.NewHTTPError(http.StatusOK, res)
 }
 
 func postLogout(c echo.Context) error {
@@ -138,13 +82,15 @@ func getWhoamI(c echo.Context) error {
 func generatePKCE(c echo.Context) error {
 	sess, err := session.Get("sessions", c)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	sess.Options.SameSite = http.SameSiteNoneMode
 	sess.Options.Secure = true
 
-	codeVerifier := randAlphabetAndNumberString(43)
+	codeVerifier := model.RandAlphabetAndNumberString(43)
+	// log.Print(codeVerifier + "aaaaaaaaaaaaaaaa")
 	sess.Values[sessionCodeVerifierKey] = codeVerifier
 
 	codeVerifierHash := sha256.Sum256([]byte(codeVerifier))
@@ -152,6 +98,7 @@ func generatePKCE(c echo.Context) error {
 
 	err = sess.Save(c.Request(), c.Response())
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
@@ -160,6 +107,7 @@ func generatePKCE(c echo.Context) error {
 	values.Add("client_id", service.PalamoClientID)
 	values.Add("scope", service.OauthScope)
 	values.Add("redirect_uri", service.Redirect_uri)
+	values.Add("access_type", "offline")
 	values.Add("code_challenge_method", codeChallengeMethod)
 	values.Add("code_challenge", encoder.EncodeToString(codeVerifierHash[:]))
 
@@ -174,60 +122,98 @@ func authCallback(c echo.Context) error {
 
 	sess, err := session.Get("sessions", c)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
 	codeVerifier, ok := sess.Values[sessionCodeVerifierKey].(string)
 	if !ok {
-		return echo.NewHTTPError(http.StatusInternalServerError)
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get code_verifier")
 	}
 
 	res, err := service.RequestAccessToken(code, codeVerifier)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	body, err := service.FetchGoogleEmailAddress(res.AccessToken)
+	// log.Print(strconv.Itoa(res.ExpiresIn) + "fffffffffffffffffffffffffffffffffffffffffffffffffff")
+	// log.Print(res.RefreshToken + "dddddddddddddddddddddddddddd")
+	googleUser, err := service.FetchGoogleUser(res.AccessToken)
 	if err != nil {
+		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 
-	log.Print(body)
-	// var data map[string]interface{}
-	// json.Unmarshal(body, &data)
-
-	return echo.NewHTTPError(http.StatusOK, body)
-}
-
-var randSrcPool = sync.Pool{
-	New: func() interface{} {
-		return rand.NewSource(time.Now().UnixNano())
-	},
-}
-
-const (
-	rs6Letters       = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-	rs6LetterIdxBits = 6
-	rs6LetterIdxMask = 1<<rs6LetterIdxBits - 1
-	rs6LetterIdxMax  = 63 / rs6LetterIdxBits
-)
-
-func randAlphabetAndNumberString(n int) string {
-	b := make([]byte, n)
-	randSrc := randSrcPool.Get().(rand.Source)
-	cache, remain := randSrc.Int63(), rs6LetterIdxMax
-	for i := n - 1; i >= 0; {
-		if remain == 0 {
-			cache, remain = randSrc.Int63(), rs6LetterIdxMax
-		}
-		idx := int(cache & rs6LetterIdxMask)
-		if idx < len(rs6Letters) {
-			b[i] = rs6Letters[idx]
-			i--
-		}
-		cache >>= rs6LetterIdxBits
-		remain--
+	ctx := c.Request().Context()
+	userID, err := model.GetUserIDByGoogleID(ctx, googleUser.ID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	randSrcPool.Put(randSrc)
-	return string(b)
+	if userID == nil {
+		userID, err = model.CreateUser(ctx, googleUser.ID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
+	sess.Values["userID"] = &userID
+	sess.Values["email"] = googleUser.EmailAddress
+	sess.Save(c.Request(), c.Response())
+
+	return echo.NewHTTPError(http.StatusOK, googleUser)
+	// return c.Redirect(http.StatusSeeOther, "/")
 }
+
+// func postSignUp(c echo.Context) error {
+// 	var req LoginRequestBody
+// 	c.Bind(&req)
+
+// 	if req.Password == "" || req.Name == "" {
+// 		return c.String(http.StatusBadRequest, "invalid request")
+// 	}
+
+// 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return c.String(http.StatusInternalServerError, fmt.Sprintf("bcrypt generate error: %v", err))
+// 	}
+
+// 	userID, err := model.PostSignUp(c, req.Name, hashedPass)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error: %v", err))
+// 	}
+
+// 	res := LoginResponse{
+// 		ID:   *userID,
+// 		Name: req.Name,
+// 	}
+
+// 	return echo.NewHTTPError(http.StatusOK, res)
+// }
+
+// func postLogin(c echo.Context) error {
+// 	var req LoginRequestBody
+// 	c.Bind(&req)
+
+// 	if req.Password == "" || req.Name == "" {
+// 		return c.String(http.StatusBadRequest, "invalid request")
+// 	}
+
+// 	userID, err := model.PostLogin(c, req.Name, req.Password)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return generateEchoError(err)
+// 	}
+
+// 	res := LoginResponse{
+// 		ID:   *userID,
+// 		Name: req.Name,
+// 	}
+
+// 	return echo.NewHTTPError(http.StatusOK, res)
+// }
