@@ -18,7 +18,7 @@ const (
 	tokenEndPoint = "https://www.googleapis.com/oauth2/v4/token"
 	OauthScope    = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
 	googleAPI     = "https://people.googleapis.com/v1/people/me?personFields=emailAddresses"
-	Redirect_uri  = "http://localhost:8080/api/oauth/callback"
+	Redirect_uri  = "https://hackathon-21-winter-18.trap.show/backend/api/oauth/callback"
 )
 
 var (
