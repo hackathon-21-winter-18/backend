@@ -55,9 +55,16 @@ paths:
   #         description: パスワードが不一致
   #       404:
   #         description: ユーザーが見つからない
-  /oauth/genpkce:
+  # /oauth/genpkce:
+  #   get:
+  #     tags: 
+  #       - oauth
+  #     responses:
+  #       200:
+  #         description: OK
+  /oauth/login/:
     get:
-      tags: 
+      tags:
         - oauth
       responses:
         200:
