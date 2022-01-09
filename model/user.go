@@ -97,7 +97,7 @@ func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, err
 
 func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
 	var user User
-	err := db.Get(&user, "SELECT * FROM users WHERE name=?", name)
+	err := db.Get(&user, "SELECT id, name, hashedPass FROM users WHERE name=?", name)
 	if err != nil {
 		return nil, ErrNotFound
 	}
