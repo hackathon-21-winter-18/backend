@@ -37,10 +37,11 @@ func SetRouting(sess sess.Session) {
 		{
 			// apiOauth.POST("/signup", postSignUp)
 			// apiOauth.POST("/login", postLogin)
+			apiOauth.GET("/login", loginHandler)
 			apiOauth.POST("/logout", postLogout, userAuthMiddleware)
 			apiOauth.GET("/whoamI", getWhoamI, userAuthMiddleware)
-			apiOauth.GET("/genpkce", generatePKCE)
-			apiOauth.GET("/callback", authCallback)
+			// apiOauth.GET("/genpkce", generatePKCE)
+			// apiOauth.GET("/callback", authCallback)
 		}
 
 		apiUser := api.Group("/user", userAuthMiddleware)

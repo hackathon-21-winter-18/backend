@@ -1,14 +1,10 @@
 package router
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
 	"net/http"
-	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/hackathon-21-winter-18/backend/model"
-	"github.com/hackathon-21-winter-18/backend/service"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
@@ -35,6 +31,35 @@ type Me struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
 	UnreadNotices int    `json:"unreadNotices"`
+}
+
+func loginHandler(c echo.Context) error {
+	sess, err := session.Get("clientSession", c)
+	if err != nil {
+		c.Logger().Error(err)
+		return errSessionNotFound(err)
+	}
+
+	googleID := sess.Values["googleID"].(string)
+	if len(googleID) != 21 {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid googleID")
+	}
+
+	ctx := c.Request().Context()
+	userID, err := model.GetUserIDByGoogleID(ctx, googleID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if userID == nil {
+		userID, err = model.CreateUser(ctx, googleID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
+	return nil
 }
 
 func postLogout(c echo.Context) error {
@@ -79,94 +104,94 @@ func getWhoamI(c echo.Context) error {
 	})
 }
 
-func generatePKCE(c echo.Context) error {
-	sess, err := session.Get("sessions", c)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
+// func generatePKCE(c echo.Context) error {
+// 	sess, err := session.Get("sessions", c)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
 
-	sess.Options.SameSite = http.SameSiteNoneMode
-	sess.Options.Secure = true
+// 	sess.Options.SameSite = http.SameSiteNoneMode
+// 	sess.Options.Secure = true
 
-	codeVerifier := model.RandAlphabetAndNumberString(43)
-	// log.Print(codeVerifier + "aaaaaaaaaaaaaaaa")
-	sess.Values[sessionCodeVerifierKey] = codeVerifier
+// 	codeVerifier := model.RandAlphabetAndNumberString(43)
+// 	// log.Print(codeVerifier + "aaaaaaaaaaaaaaaa")
+// 	sess.Values[sessionCodeVerifierKey] = codeVerifier
 
-	codeVerifierHash := sha256.Sum256([]byte(codeVerifier))
-	encoder := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
+// 	codeVerifierHash := sha256.Sum256([]byte(codeVerifier))
+// 	encoder := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
 
-	err = sess.Save(c.Request(), c.Response())
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
+// 	err = sess.Save(c.Request(), c.Response())
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
 
-	values := url.Values{}
-	values.Add("response_type", "code")
-	values.Add("client_id", service.PalamoClientID)
-	values.Add("scope", service.OauthScope)
-	values.Add("redirect_uri", service.Redirect_uri)
-	values.Add("access_type", "offline")
-	values.Add("code_challenge_method", codeChallengeMethod)
-	values.Add("code_challenge", encoder.EncodeToString(codeVerifierHash[:]))
+// 	values := url.Values{}
+// 	values.Add("response_type", "code")
+// 	values.Add("client_id", service.PalamoClientID)
+// 	values.Add("scope", service.OauthScope)
+// 	values.Add("redirect_uri", service.Redirect_uri)
+// 	values.Add("access_type", "offline")
+// 	values.Add("code_challenge_method", codeChallengeMethod)
+// 	values.Add("code_challenge", encoder.EncodeToString(codeVerifierHash[:]))
 
-	return c.Redirect(http.StatusFound, authEndPoint+values.Encode())
-}
+// 	return c.Redirect(http.StatusFound, authEndPoint+values.Encode())
+// }
 
-func authCallback(c echo.Context) error {
-	code := c.QueryParam("code")
-	if len(code) == 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, "code is required")
-	}
+// func authCallback(c echo.Context) error {
+// 	code := c.QueryParam("code")
+// 	if len(code) == 0 {
+// 		return echo.NewHTTPError(http.StatusBadRequest, "code is required")
+// 	}
 
-	sess, err := session.Get("sessions", c)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
+// 	sess, err := session.Get("sessions", c)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
 
-	codeVerifier, ok := sess.Values[sessionCodeVerifierKey].(string)
-	if !ok {
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get code_verifier")
-	}
+// 	codeVerifier, ok := sess.Values[sessionCodeVerifierKey].(string)
+// 	if !ok {
+// 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to get code_verifier")
+// 	}
 
-	res, err := service.RequestAccessToken(code, codeVerifier)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
+// 	res, err := service.RequestAccessToken(code, codeVerifier)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
 
-	// log.Print(strconv.Itoa(res.ExpiresIn) + "fffffffffffffffffffffffffffffffffffffffffffffffffff")
-	// log.Print(res.RefreshToken + "dddddddddddddddddddddddddddd")
-	googleUser, err := service.FetchGoogleUser(res.AccessToken)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
+// 	// log.Print(strconv.Itoa(res.ExpiresIn) + "fffffffffffffffffffffffffffffffffffffffffffffffffff")
+// 	// log.Print(res.RefreshToken + "dddddddddddddddddddddddddddd")
+// 	googleUser, err := service.FetchGoogleUser(res.AccessToken)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
 
-	ctx := c.Request().Context()
-	userID, err := model.GetUserIDByGoogleID(ctx, googleUser.ID)
-	if err != nil {
-		c.Logger().Error(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
-	}
-	if userID == nil {
-		userID, err = model.CreateUser(ctx, googleUser.ID)
-		if err != nil {
-			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
-		}
-	}
-	sess.Options.SameSite = http.SameSiteNoneMode
-	sess.Options.Secure = true
-	sess.Values["userID"] = &userID
-	sess.Values["email"] = googleUser.EmailAddress
-	sess.Save(c.Request(), c.Response())
+// 	ctx := c.Request().Context()
+// 	userID, err := model.GetUserIDByGoogleID(ctx, googleUser.ID)
+// 	if err != nil {
+// 		c.Logger().Error(err)
+// 		return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 	}
+// 	if userID == nil {
+// 		userID, err = model.CreateUser(ctx, googleUser.ID)
+// 		if err != nil {
+// 			c.Logger().Error(err)
+// 			return echo.NewHTTPError(http.StatusInternalServerError, err)
+// 		}
+// 	}
+// 	sess.Options.SameSite = http.SameSiteNoneMode
+// 	sess.Options.Secure = true
+// 	sess.Values["userID"] = &userID
+// 	sess.Values["email"] = googleUser.EmailAddress
+// 	sess.Save(c.Request(), c.Response())
 
-	return echo.NewHTTPError(http.StatusOK, googleUser)
-	// return c.Redirect(http.StatusSeeOther, "/")
-}
+// 	return echo.NewHTTPError(http.StatusOK, googleUser)
+// 	// return c.Redirect(http.StatusSeeOther, "/")
+// }
 
 // func postSignUp(c echo.Context) error {
 // 	var req LoginRequestBody
