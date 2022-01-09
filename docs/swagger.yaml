@@ -63,9 +63,14 @@ paths:
   #       200:
   #         description: OK
   /oauth/login/:
-    get:
+    post:
       tags:
         - oauth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         200:
           description: OK
@@ -340,14 +345,16 @@ components:
     LoginRequest:
       type: object
       properties: 
-        name: 
-          type: string
-          description: ユーザー名
-        password:
-          type: string
-      required:
-      - name
-      - password
+      #   name: 
+      #     type: string
+      #     description: ユーザー名
+      #   password:
+      #     type: string
+      # required:
+      # - name
+      # - password
+          googleID:
+            type: string
     LoginResponse:
       type: object
       properties:
