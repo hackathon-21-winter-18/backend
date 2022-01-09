@@ -33,26 +33,28 @@ type Me struct {
 	UnreadNotices int    `json:"unreadNotices"`
 }
 
-func loginHandler(c echo.Context) error {
-	sess, err := session.Get("clientSession", c)
-	if err != nil {
-		c.Logger().Error(err)
-		return errSessionNotFound(err)
-	}
+type LoginRequest struct {
+	GoogleID string `json:"googleID"`
+}
 
-	googleID := sess.Values["googleID"].(string)
-	if len(googleID) != 21 {
+func postLogin(c echo.Context) error {
+	var req LoginRequest
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if &req.GoogleID == nil || len(req.GoogleID) != 21 {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid googleID")
 	}
 
 	ctx := c.Request().Context()
-	userID, err := model.GetUserIDByGoogleID(ctx, googleID)
+	userID, err := model.GetUserIDByGoogleID(ctx, req.GoogleID)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	if userID == nil {
-		userID, err = model.CreateUser(ctx, googleID)
+		userID, err = model.CreateUser(ctx, req.GoogleID)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
