@@ -456,12 +456,6 @@ components:
         createdBy:
           type: string
           format: uuid
-        group1:
-          type: string
-        group2:
-          type: string
-        group3:
-          type: string
       required:
         - id
         - name
@@ -501,12 +495,6 @@ components:
           type: string
           format: uuid
           description: 公開されてるものに対してのみ必要だから任意
-        group1:
-          type: string
-        group2:
-          type: string
-        group3:
-          type: string
       required:
         - id
         - name
@@ -524,12 +512,6 @@ components:
           items:
             $ref: "#/components/schemas/Pin"
           description: ピンの配列
-        group1:
-          type: string
-        group2:
-          type: string
-        group3:
-          type: string
     PostPalace:
       type: object
       properties:
@@ -663,12 +645,6 @@ components:
         createdBy:
           type: string
           format: uuid
-        group1:
-          type: string
-        group2:
-          type: string
-        group3:
-          type: string
     ID: 
       type: object
       properties:
