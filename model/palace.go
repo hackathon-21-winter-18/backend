@@ -143,7 +143,7 @@ func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, 
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, image, group1, group2, group3 string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, path, group1, group2, group3 string) error {
 	var count int
 	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
@@ -154,7 +154,7 @@ func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_
 		return ErrNotFound
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=? group1=? group2=? group3=? WHERE id=? ", name, number_of_embededPins, image, date, palaceID, group1, group2, group3)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=?, group1=?, group2=?, group3=? WHERE id=? ", name, number_of_embededPins, path, date, group1, group2, group3, palaceID)
 	if err != nil {
 		return err
 	}

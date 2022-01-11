@@ -220,7 +220,7 @@ func postTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	for _, pin := range req.Pins {
-		if pin.Number == nil || pin.X == nil || pin.Y == nil {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil || pin.GroupNumber > 3 || pin.GroupNumber < 0 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
@@ -292,7 +292,7 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 	for _, pin := range req.Pins {
-		if pin.Number == nil || pin.X == nil || pin.Y == nil {
+		if pin.Number == nil || pin.X == nil || pin.Y == nil || pin.GroupNumber > 3 || pin.GroupNumber < 0 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid pins"))
 		}
 	}
