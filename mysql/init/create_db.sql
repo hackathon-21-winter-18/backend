@@ -59,9 +59,6 @@ CREATE TABLE IF NOT EXISTS `templates` (
   `shared_at` datetime NULL,
   `firstshared` boolean DEFAULT False,
   `firstshared_at` datetime NULL,
-  `group1` varchar(20) DEFAULT "",
-  `group2` varchar(20) DEFAULT "",
-  `group3` varchar(20) DEFAULT "",
   PRIMARY KEY (`id`),
   FOREIGN KEY (`createdBy`) REFERENCES users(`id`),
   FOREIGN KEY (`heldBy`) REFERENCES users(`id`)
