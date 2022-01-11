@@ -23,6 +23,9 @@ type Palace struct {
 	FirstSharedAt time.Time    `db:"firstshared_at"`
 	CreatorName   string       `json:"creatorName"`
 	EditorName    string       `json:"editorName"`
+	Group1        string       `json:"group1" db:"group1"`
+	Group2        string       `json:"group2" db:"group2"`
+	Group3        string       `json:"group3" db:"group3"`
 }
 
 type RequestQuery struct {
@@ -50,7 +53,7 @@ func GetSharedPalaces(ctx context.Context, requestQuery RequestQuery) ([]*Palace
 	}
 
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, heldBy, share, savedCount, shared_at, firstshared_at FROM palaces WHERE share=true"+queryCondition)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID, name, createdBy, image, heldBy, share, savedCount, shared_at, firstshared_at, group1, group2, group3 FROM palaces WHERE share=true"+queryCondition)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +92,7 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQue
 	}
 
 	var palaces []*Palace
-	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount FROM palaces WHERE heldBy=? "+queryCondition, userID)
+	err := db.SelectContext(ctx, &palaces, "SELECT id, originalID,  name, createdBy, image, share, savedCount, group1, group2, group3 FROM palaces WHERE heldBy=? "+queryCondition, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +110,7 @@ func GetMyPalaces(ctx context.Context, userID uuid.UUID, requestQuery RequestQue
 
 func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	var palace Palace
-	err := db.GetContext(ctx, &palace, "SELECT id, originalID, name, createdBy, image, share FROM palaces WHERE id=? ", palaceID)
+	err := db.GetContext(ctx, &palace, "SELECT id, originalID, name, createdBy, image, share, group1, group2, group3 FROM palaces WHERE id=? ", palaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,20 +130,20 @@ func GetPalace(ctx context.Context, palaceID uuid.UUID) (*Palace, error) {
 	return &palace, nil
 }
 
-func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, number_of_embededPins int, path string) (*uuid.UUID, error) {
+func CreatePalace(ctx context.Context, originalID *uuid.UUID, userID uuid.UUID, createdBy *uuid.UUID, name *string, number_of_embededPins int, path, group1, group2, group3 string) (*uuid.UUID, error) {
 	palaceID := uuid.New()
 	if originalID == nil {
 		originalID = &palaceID
 	}
 	date := time.Now()
-	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, number_of_embededPins, image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, number_of_embededPins, path, date, date)
+	_, err := db.ExecContext(ctx, "INSERT INTO palaces (id, originalID, name, createdBy, heldBy, number_of_embededPins, image, created_at, updated_at, group1, group2, group3) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ", palaceID, originalID, name, createdBy, userID, number_of_embededPins, path, date, date, group1, group2, group3)
 	if err != nil {
 		return nil, err
 	}
 	return &palaceID, nil
 }
 
-func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, image string) error {
+func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_of_embededPins int, image, group1, group2, group3 string) error {
 	var count int
 	// TODO なくてもよさそう
 	err := db.GetContext(ctx, &count, "SELECT COUNT(*) FROM palaces WHERE id=?", palaceID)
@@ -151,7 +154,7 @@ func UpdatePalace(ctx context.Context, palaceID uuid.UUID, name *string, number_
 		return ErrNotFound
 	}
 	date := time.Now()
-	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=? WHERE id=? ", name, number_of_embededPins, image, date, palaceID)
+	_, err = db.ExecContext(ctx, "UPDATE palaces SET name=?, number_of_embededPins=?, image=?, updated_at=? group1=? group2=? group3=? WHERE id=? ", name, number_of_embededPins, image, date, palaceID, group1, group2, group3)
 	if err != nil {
 		return err
 	}

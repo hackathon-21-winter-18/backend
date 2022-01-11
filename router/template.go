@@ -238,7 +238,7 @@ func postTemplate(c echo.Context) error {
 	}
 
 	for _, pin := range req.Pins {
-		err = model.CreatePin(ctx, pin.Number, *templateID, pin.X, pin.Y)
+		err = model.CreatePin(ctx, pin.Number, *templateID, pin.X, pin.Y, pin.GroupNumber)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -325,7 +325,7 @@ func putTemplate(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	for _, updatedPin := range req.Pins {
-		err = model.CreatePin(ctx, updatedPin.Number, templateID, updatedPin.X, updatedPin.Y)
+		err = model.CreatePin(ctx, updatedPin.Number, templateID, updatedPin.X, updatedPin.Y, updatedPin.GroupNumber)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)

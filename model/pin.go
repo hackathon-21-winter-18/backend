@@ -13,14 +13,14 @@ type EmbededPin struct {
 	Word        string   `json:"word" db:"word"`
 	Place       string   `json:"place" db:"place"`
 	Situation   string   `json:"situation" db:"situation"`
-	GroupName   string   `json:"groupName" db:"groupName"`
 	GroupNumber int      `json:"groupNumber" db:"groupNumber"`
 }
 
 type Pin struct {
-	Number *int     `json:"number,omitempty" db:"number"`
-	X      *float32 `json:"x" db:"x"`
-	Y      *float32 `json:"y" db:"y"`
+	Number      *int     `json:"number,omitempty" db:"number"`
+	X           *float32 `json:"x" db:"x"`
+	Y           *float32 `json:"y" db:"y"`
+	GroupNumber int      `json:"groupNumber" db:"groupNumber"`
 }
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
@@ -33,8 +33,8 @@ func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, erro
 	return embededPins, nil
 }
 
-func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, condition string, groupName string, groupNumber int) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, situation, palaceID, groupName, groupNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, condition, palaceID, groupName, groupNumber)
+func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, condition string, groupNumber int) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, situation, palaceID, groupNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, condition, palaceID, groupNumber)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 
 func GetPins(ctx context.Context, templateID uuid.UUID) ([]Pin, error) {
 	var templatePins []Pin
-	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y FROM pins WHERE templateID=? ORDER BY number ASC ", templateID)
+	err := db.SelectContext(ctx, &templatePins, "SELECT * FROM pins WHERE templateID=? ORDER BY number ASC ", templateID)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func GetPins(ctx context.Context, templateID uuid.UUID) ([]Pin, error) {
 	return templatePins, nil
 }
 
-func CreatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO pins (number, x, y, templateID) VALUES (?, ?, ?, ?) ", number, x, y, templateID)
+func CreatePin(ctx context.Context, number *int, templateID uuid.UUID, x, y *float32, groupNumber int) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO pins (number, x, y, templateID, groupNumber) VALUES (?, ?, ?, ?, ?) ", number, x, y, templateID, groupNumber)
 	if err != nil {
 		return err
 	}

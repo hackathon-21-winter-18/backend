@@ -27,11 +27,17 @@ type PostPalace struct {
 	EmbededPins []model.EmbededPin `json:"embededPins"`
 	CreatedBy   *uuid.UUID         `json:"createdBy,omitempty"`
 	OriginalID  *uuid.UUID         `json:"originalID"`
+	Group1      string             `json:"group1"`
+	Group2      string             `json:"group2"`
+	Group3      string             `json:"group3"`
 }
 type PutPalace struct {
 	Name        *string            `json:"name"`
 	Image       string             `json:"image"`
 	EmbededPins []model.EmbededPin `json:"embededPins"`
+	Group1      string             `json:"group1"`
+	Group2      string             `json:"group2"`
+	Group3      string             `json:"group3"`
 }
 
 func getSharedPalaces(c echo.Context) error {
@@ -67,7 +73,7 @@ func getSharedPalaces(c echo.Context) error {
 	}
 
 	requestQuery := model.RequestQuery{
-		Sort: sort,
+		Sort:           sort,
 		MaxEmbededPins: max,
 		MinEmbededPins: min,
 	}
@@ -142,11 +148,11 @@ func getMyPalaces(c echo.Context) error {
 	}
 
 	requestQuery := model.RequestQuery{
-		Sort: sort,
+		Sort:           sort,
 		MaxEmbededPins: max,
 		MinEmbededPins: min,
 	}
-	
+
 	ctx := c.Request().Context()
 	palaces, err := model.GetMyPalaces(ctx, userID, requestQuery)
 	if err != nil {
@@ -236,7 +242,7 @@ func postPalace(c echo.Context) error {
 	}
 	number_of_embededPins := len(req.EmbededPins)
 
-	palaceID, err := model.CreatePalace(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, number_of_embededPins, path)
+	palaceID, err := model.CreatePalace(ctx, req.OriginalID, userID, req.CreatedBy, req.Name, number_of_embededPins, path, req.Group1, req.Group2, req.Group3)
 	if err != nil {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -248,7 +254,7 @@ func postPalace(c echo.Context) error {
 	}
 
 	for _, embededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Place, embededPin.Situation, embededPin.GroupName, embededPin.GroupNumber)
+		err = model.CreateEmbededPin(ctx, embededPin.Number, *palaceID, embededPin.X, embededPin.Y, embededPin.Word, embededPin.Place, embededPin.Situation, embededPin.GroupNumber)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -312,7 +318,7 @@ func putPalace(c echo.Context) error {
 		c.Logger().Error(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
-	err = model.UpdatePalace(ctx, palaceID, req.Name, number_of_embededPins, path)
+	err = model.UpdatePalace(ctx, palaceID, req.Name, number_of_embededPins, path, req.Group1, req.Group2, req.Group3)
 	if err != nil {
 		c.Logger().Error(err)
 		return generateEchoError(err)
@@ -334,7 +340,7 @@ func putPalace(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	for _, updatedEmbededPin := range req.EmbededPins {
-		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Situation, updatedEmbededPin.GroupName, updatedEmbededPin.GroupNumber)
+		err = model.CreateEmbededPin(ctx, updatedEmbededPin.Number, palaceID, updatedEmbededPin.X, updatedEmbededPin.Y, updatedEmbededPin.Word, updatedEmbededPin.Place, updatedEmbededPin.Situation, updatedEmbededPin.GroupNumber)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -423,7 +429,7 @@ func sharePalace(c echo.Context) error {
 			return generateEchoError(err)
 		}
 	}
-	
+
 	err = model.SharePalace(ctx, palaceID, req.Share)
 	if err != nil {
 		c.Logger().Error(err)

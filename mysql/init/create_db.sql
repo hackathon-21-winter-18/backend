@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS `palaces` (
   `shared_at` datetime NULL, 
   `firstshared` boolean DEFAULT False,
   `firstshared_at` datetime NULL,
+  `group1` varchar(20) DEFAULT "",
+  `group2` varchar(20) DEFAULT "",
+  `group3` varchar(20) DEFAULT "",
   PRIMARY KEY (`id`),
   FOREIGN KEY (`createdBy`) REFERENCES users(`id`),
   FOREIGN KEY (`heldBy`) REFERENCES users(`id`)
@@ -37,7 +40,6 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
   `place` varchar(15) NULL,
   `situation` varchar(15) NULL,
   `palaceID` char(36) NOT NULL,
-  `groupName` varchar(20) NULL,
   `groupNumber` int DEFAULT 0,
   FOREIGN KEY (`palaceID`) REFERENCES palaces(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -57,6 +59,9 @@ CREATE TABLE IF NOT EXISTS `templates` (
   `shared_at` datetime NULL,
   `firstshared` boolean DEFAULT False,
   `firstshared_at` datetime NULL,
+  `group1` varchar(20) DEFAULT "",
+  `group2` varchar(20) DEFAULT "",
+  `group3` varchar(20) DEFAULT "",
   PRIMARY KEY (`id`),
   FOREIGN KEY (`createdBy`) REFERENCES users(`id`),
   FOREIGN KEY (`heldBy`) REFERENCES users(`id`)
@@ -67,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `pins` (
   `x` decimal(10, 2) NOT NULL, 
   `y` decimal(10, 2) NOT NULL,
   `templateID` char(36) NOT NULL,
+  `groupNumber` int DEFAULT 0,
   FOREIGN KEY (`templateID`) REFERENCES templates(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
