@@ -61,6 +61,15 @@ func postLogin(c echo.Context) error {
 		}
 	}
 
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		return errSessionNotFound(err)
+	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
+	sess.Values["userID"] = &userID
+	sess.Save(c.Request(), c.Response())
+
 	return nil
 }
 
