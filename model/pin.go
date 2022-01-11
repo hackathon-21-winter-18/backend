@@ -7,12 +7,14 @@ import (
 )
 
 type EmbededPin struct {
-	Number    *int     `json:"number,omitempty" db:"number"`
-	X         *float32 `json:"x,omitempty" db:"x"`
-	Y         *float32 `json:"y,omitempty" db:"y"`
-	Word      string   `json:"word" db:"word"`
-	Place     string   `json:"place" db:"place"`
-	Situation string   `json:"situation" db:"situation"`
+	Number      *int     `json:"number,omitempty" db:"number"`
+	X           *float32 `json:"x,omitempty" db:"x"`
+	Y           *float32 `json:"y,omitempty" db:"y"`
+	Word        string   `json:"word" db:"word"`
+	Place       string   `json:"place" db:"place"`
+	Situation   string   `json:"situation" db:"situation"`
+	GroupName   string   `json:"groupName" db:"groupName"`
+	GroupNumber int      `json:"groupNumber" db:"groupNumber"`
 }
 
 type Pin struct {
@@ -23,7 +25,7 @@ type Pin struct {
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
-	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, situation FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
+	err := db.SelectContext(ctx, &embededPins, "SELECT * FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +33,8 @@ func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, erro
 	return embededPins, nil
 }
 
-func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, condition string) error {
-	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, situation, palaceID) VALUES (?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, condition, palaceID)
+func CreateEmbededPin(ctx context.Context, number *int, palaceID uuid.UUID, x, y *float32, word, place, condition string, groupName string, groupNumber int) error {
+	_, err := db.ExecContext(ctx, "INSERT INTO embededpins (number, x, y, word, place, situation, palaceID, groupName, groupNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ", number, x, y, word, place, condition, palaceID, groupName, groupNumber)
 	if err != nil {
 		return err
 	}

@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS `embededpins` (
   `place` varchar(15) NULL,
   `situation` varchar(15) NULL,
   `palaceID` char(36) NOT NULL,
+  `groupName` varchar(20) NULL,
+  `groupNumber` int DEFAULT 0,
   FOREIGN KEY (`palaceID`) REFERENCES palaces(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
