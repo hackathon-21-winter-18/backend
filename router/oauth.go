@@ -33,6 +33,46 @@ type Me struct {
 	UnreadNotices int    `json:"unreadNotices"`
 }
 
+type LoginRequest struct {
+	GoogleID string `json:"googleID"`
+}
+
+func postLogin(c echo.Context) error {
+	var req LoginRequest
+	if err := c.Bind(&req); err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusBadRequest, err)
+	}
+	if &req.GoogleID == nil || len(req.GoogleID) != 21 {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid googleID")
+	}
+
+	ctx := c.Request().Context()
+	userID, err := model.GetUserIDByGoogleID(ctx, req.GoogleID)
+	if err != nil {
+		c.Logger().Error(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	if userID == nil {
+		userID, err = model.CreateUser(ctx, req.GoogleID)
+		if err != nil {
+			c.Logger().Error(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+	}
+
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		return errSessionNotFound(err)
+	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
+	sess.Values["userID"] = &userID
+	sess.Save(c.Request(), c.Response())
+
+	return nil
+}
+
 func postLogout(c echo.Context) error {
 	err := s.RevokeSession(c)
 	if err != nil {
