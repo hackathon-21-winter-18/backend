@@ -420,6 +420,10 @@ components:
           type: string
         situation: 
           type: string
+        groupNumber:
+          type: integer
+        groupName:
+          type: string
     Templates:
       type: array
       items:
