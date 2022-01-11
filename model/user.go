@@ -2,14 +2,19 @@ package model
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo-contrib/session"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	ID uuid.UUID `json:"id,omitempty" db:"id"`
-	// Name       string    `json:"name,omitempty" db:"name"`
-	// HashedPass string    `json:"-" db:"hashedPass"`
+	Name       string    `json:"name,omitempty" db:"name"`
+	HashedPass string    `json:"-" db:"hashedPass"`
 }
 
 type Me struct {
@@ -60,59 +65,59 @@ func PutUserName(ctx context.Context, userID uuid.UUID, name string) error {
 	return nil
 }
 
-// func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, error) {
-// 	var count int
+func PostSignUp(c echo.Context, name string, hashedPass []byte) (*uuid.UUID, error) {
+	var count int
 
-// 	err := db.Get(&count, "SELECT COUNT(*) FROM users WHERE name=?", name)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	err := db.Get(&count, "SELECT COUNT(*) FROM users WHERE name=?", name)
+	if err != nil {
+		return nil, err
+	}
 
-// 	if count > 0 {
-// 		return nil, fmt.Errorf("There is a user with the same name")
-// 	}
+	if count > 0 {
+		return nil, fmt.Errorf("There is a user with the same name")
+	}
 
-// 	userID := uuid.New()
-// 	_, err = db.Exec("INSERT INTO users (id, name, hashedPass) VALUES (?, ?, ?)", userID, name, hashedPass)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	userID := uuid.New()
+	_, err = db.Exec("INSERT INTO users (id, name, hashedPass) VALUES (?, ?, ?)", userID, name, hashedPass)
+	if err != nil {
+		return nil, err
+	}
 
-// 	sess, err := session.Get("sessions", c)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	sess.Options.SameSite = http.SameSiteNoneMode
-// 	sess.Options.Secure = true
-// 	sess.Values["userID"] = userID.String()
-// 	sess.Save(c.Request(), c.Response())
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		panic(err)
+	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
+	sess.Values["userID"] = userID.String()
+	sess.Save(c.Request(), c.Response())
 
-// 	return &userID, err
-// }
+	return &userID, err
+}
 
-// func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
-// 	var user User
-// 	err := db.Get(&user, "SELECT * FROM users WHERE name=?", name)
-// 	if err != nil {
-// 		return nil, ErrNotFound
-// 	}
-// 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(password))
-// 	if err != nil {
-// 		if err == bcrypt.ErrMismatchedHashAndPassword {
-// 			return nil, ErrForbidden
-// 		} else {
-// 			return nil, err
-// 		}
-// 	}
+func PostLogin(c echo.Context, name, password string) (*uuid.UUID, error) {
+	var user User
+	err := db.Get(&user, "SELECT id, name, hashedPass FROM users WHERE name=?", name)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(password))
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return nil, ErrForbidden
+		} else {
+			return nil, err
+		}
+	}
 
-// 	sess, err := session.Get("sessions", c)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	sess.Options.SameSite = http.SameSiteNoneMode
-// 	sess.Options.Secure = true
-// 	sess.Values["userID"] = user.ID.String()
-// 	sess.Save(c.Request(), c.Response())
+	sess, err := session.Get("sessions", c)
+	if err != nil {
+		panic(err)
+	}
+	sess.Options.SameSite = http.SameSiteNoneMode
+	sess.Options.Secure = true
+	sess.Values["userID"] = user.ID.String()
+	sess.Save(c.Request(), c.Response())
 
-// 	return &user.ID, nil
-// }
+	return &user.ID, nil
+}

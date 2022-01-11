@@ -17,15 +17,15 @@ const (
 )
 
 // 旧ログインシステム
-// type LoginRequestBody struct {
-// 	Name     string `json:"name,omitempty"`
-// 	Password string `json:"password,omitempty"`
-// }
+type LoginRequestBody struct {
+	Name     string `json:"name,omitempty"`
+	Password string `json:"password,omitempty"`
+}
 
-// type LoginResponse struct {
-// 	ID   uuid.UUID `json:"id,omitempty"`
-// 	Name string    `json:"name,omitempty"`
-// }
+type LoginResponse struct {
+	ID   uuid.UUID `json:"id,omitempty"`
+	Name string    `json:"name,omitempty"`
+}
 
 type Me struct {
 	ID            string `json:"id"`
