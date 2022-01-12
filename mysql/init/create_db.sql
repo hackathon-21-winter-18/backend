@@ -5,7 +5,7 @@ USE 21hack18;
 CREATE TABLE IF NOT EXISTS `users` (
   `id` char(36) NOT NULL UNIQUE,
   `googleID` char(21) NOT NUll UNIQUE,
-  `name` varchar(15) NOT NULL UNIQUE,
+  `name` varchar(20) NOT NULL UNIQUE,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
