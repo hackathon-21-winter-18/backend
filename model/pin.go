@@ -25,7 +25,7 @@ type Pin struct {
 
 func GetEmbededPins(ctx context.Context, PalaceID uuid.UUID) ([]EmbededPin, error) {
 	var embededPins []EmbededPin
-	err := db.SelectContext(ctx, &embededPins, "SELECT * FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
+	err := db.SelectContext(ctx, &embededPins, "SELECT number, x, y, word, place, situation, groupNumber FROM embededpins WHERE palaceID=? ORDER BY number ASC ", PalaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func DeleteEmbededPins(ctx context.Context, palaceID uuid.UUID) error {
 
 func GetPins(ctx context.Context, templateID uuid.UUID) ([]Pin, error) {
 	var templatePins []Pin
-	err := db.SelectContext(ctx, &templatePins, "SELECT * FROM pins WHERE templateID=? ORDER BY number ASC ", templateID)
+	err := db.SelectContext(ctx, &templatePins, "SELECT number, x, y, groupNumber FROM pins WHERE templateID=? ORDER BY number ASC ", templateID)
 	if err != nil {
 		return nil, err
 	}
