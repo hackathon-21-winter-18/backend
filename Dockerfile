@@ -7,8 +7,8 @@ WORKDIR /go/src/work
 # ホストのファイルをコンテナの作業ディレクトリに移行
 ADD . /go/src/work
 
+COPY ./ ./go/src/work
 RUN go mod download
 
-COPY ./ ./go/src/work
 
 RUN go get -u github.com/cosmtrek/air
