@@ -10,13 +10,63 @@ tags:
   - name: oauth
   - name: palaces
   - name: templates
+  - name: notices
+  - name: user
 paths:
-  /oauth/signup:
+  # /oauth/signup:
+  #   post:
+  #     tags:
+  #       - oauth
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: "#/components/schemas/LoginRequest"
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/LoginResponse"
+  #       400:
+  #         description: 不正なリクエスト
+  # /oauth/login:
+  #   post:
+  #     tags:
+  #       - oauth
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: "#/components/schemas/LoginRequest"
+  #     responses:
+  #       200:
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/LoginResponse"
+  #       400:
+  #         description: 不正なリクエスト
+  #       403:
+  #         description: パスワードが不一致
+  #       404:
+  #         description: ユーザーが見つからない
+  # /oauth/genpkce:
+  #   get:
+  #     tags: 
+  #       - oauth
+  #     responses:
+  #       200:
+  #         description: OK
+  /oauth/login/:
     post:
       tags:
         - oauth
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -24,35 +74,8 @@ paths:
       responses:
         200:
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-        400:
-          description: 不正なリクエスト
-  /oauth/login:
-    post:
-      tags:
-        - oauth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LoginRequest"
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LoginResponse"
-        400:
-          description: 不正なリクエスト
-        403:
-          description: パスワードが不一致
-        404:
-          description: ユーザーが見つからない
+
+
   /oauth/logout:
     post:
       tags:
@@ -265,6 +288,29 @@ paths:
       responses:
         200:
           description: OK
+  /notices:
+    get:
+      tags:
+        - notices
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notices"
+  /user/name:
+    put:
+      tags:
+        - user
+      requestBody: 
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/putUserRequest"
+      responses:
+        200:
+          description: OK
 components:
   parameters:
     sortQuery:
@@ -299,14 +345,16 @@ components:
     LoginRequest:
       type: object
       properties: 
-        name: 
-          type: string
-          description: ユーザー名
-        password:
-          type: string
-      required:
-      - name
-      - password
+      #   name: 
+      #     type: string
+      #     description: ユーザー名
+      #   password:
+      #     type: string
+      # required:
+      # - name
+      # - password
+          googleID:
+            type: string
     LoginResponse:
       type: object
       properties:
@@ -324,6 +372,8 @@ components:
           format: uuid
         name:
           type: string
+        unreadNotices:
+          type: integer
     Palaces:
       type: array
       items:
@@ -353,6 +403,12 @@ components:
         createdBy:
           type: string
           format: uuid
+        group1:
+          type: string
+        group2:
+          type: string
+        group3:
+          type: string
     EmbededPin:
       type: object
       description: 単語とピンのペア
@@ -370,6 +426,8 @@ components:
           type: string
         situation: 
           type: string
+        groupNumber:
+          type: integer
     Templates:
       type: array
       items:
@@ -412,6 +470,8 @@ components:
           type: number
         y:
           type: number
+        groupNumber:
+          type: integer
       description: 単語なしのピン
     PostTemplate:
       type: object
@@ -471,6 +531,12 @@ components:
           type: string
           format: uuid
           description: 公開されてるものに対してのみ必要だから任意
+        group1:
+          type: string
+        group2:
+          type: string
+        group3:
+          type: string
     PutPalace:
       type: object
       properties:
@@ -483,11 +549,20 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmbededPin"
+        group1:
+          type: string
+        group2:
+          type: string
+        group3:
+          type: string
     Share:
       type: object
       properties:
         share:
           type: boolean
+        createdBy:
+          type: string
+          format: uuid
     SharedPalaces:
       type: array
       items:
@@ -513,12 +588,25 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        createrName:
+        editorName:
+          type: string
+          description: 編集者の名前。実際はheldByの名前
+        creatorName:
           type: string
           description: 作成者のユーザー名
+        heldBy:
+          type: string
+          format: uuid
+          description: editorのIDともいう
         createdBy:
           type: string
           format: uuid
+        group1:
+          type: string
+        group2:
+          type: string
+        group3:
+          type: string
     SharedTemplates:
       type: array
       items:
@@ -544,9 +632,16 @@ components:
         savedCount:
           type: integer
           description: 保存しているユーザー数
-        createrName:
+        editorName:
+          type: string
+          description: 編集者の名前。実際はheldByの名前
+        creatorName:
           type: string
           description: 作成者のユーザー名
+        heldBy:
+          type: string
+          format: uuid
+          description: editorのIDともいう
         createdBy:
           type: string
           format: uuid
@@ -556,3 +651,32 @@ components:
         id: 
           type: string
           format: uuid
+    Notices:
+      type: array
+      items:
+        $ref: "#/components/schemas/Notice"
+    Notice:
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
+        checked:
+          type: boolean
+          description: 未読か既読か
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        palaceID: 
+          type: string
+          format: uuid
+        templateID:
+          type: string
+          format: uuid
+    putUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
